@@ -3,6 +3,7 @@ package com.example.ngsidney.bouncingcube;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
+import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
@@ -24,6 +25,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private Cube myOtherCube;
     private CubeOutline myCubeOutline;
     private Ring myRing;
+    private InstancedCube iCube;
 
     float eyeX = 0.0f;
     float eyeY = 0.0f;
@@ -60,14 +62,16 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glDepthMask(true);
 
 //        // Init a triangle and a square
-//        myTriangle = new Triangle();
+        myTriangle = new Triangle();
 //        mySquare = new Square(surfaceView);
 //        myCube = new Cube(surfaceView);
 //        myOtherCube = new Cube(surfaceView);
 
         //myCubeOutline = new CubeOutline();
 
-        myRing = new Ring();
+        //myRing = new Ring();
+
+        //iCube = new InstancedCube();
     }
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -79,7 +83,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     /*
         Called if geometry of the view changes
      */
-    private float far = 10.0f;
+    private float far = 50.0f;
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         // Define the area of the drawing context to draw to
@@ -99,15 +103,17 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private float[] mRotationMatrix = new float[16];
     private float[] mTranslationMatrix = new float[16];
 
-    float viewAngle = 0.0f;
-    float viewX = 0.0f;
-    float viewZ = 0.0f;
-    float viewAngleAdj = 9.0f;
-    float viewXAdj = 0.1f;
-    float viewZAdj = 0.25f;
-    float desiredViewAngle = 90.0f;
-    float desiredViewX = 1.0f;
-    float desiredViewZ = 2.5f;
+//    float viewAngle = 0.0f;
+//    float viewX = 0.0f;
+//    float viewZ = 0.0f;
+//    float viewAngleAdj = 9.0f;
+//    float viewXAdj = 0.1f;
+//    float viewZAdj = 0.25f;
+//    float desiredViewAngle = 90.0f;
+//    float desiredViewX = 1.0f;
+//    float desiredViewZ = 2.5f;
+
+    float radius = 160.0f;
 
     /*
         Called on each redraw of the view
@@ -115,6 +121,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         float[] scratch = new float[16];
+        //float[] translation = new float[iCube.numInstances * 3];
 
         // Redraw background color
         GLES20.glClearDepthf(1.0f);
@@ -125,84 +132,101 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f); // the view matrix used for triangle
 
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
+        Matrix.translateM(mViewMatrix, 0, 0, 0, -30.0f);
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+/*
+        for (int i = 0; i < iCube.numInstances; i++) {
+            float radian = 2 * (float) Math.PI * (i / (float) iCube.numInstances);
 
-        if (view1) {
-            if (viewAngle < desiredViewAngle) {
-                viewAngle += viewAngleAdj;
-            }
-            if (viewX < desiredViewX) {
-                viewX += viewXAdj;
-            }
-            if (viewZ < desiredViewZ) {
-                viewZ += viewZAdj;
-            }
-        } else {
-            if (viewAngle > 0) {
-                viewAngle -= viewAngleAdj;
-            }
-            if (viewX > 0) {
-                viewX -= viewXAdj;
-            }
-            if (viewZ > 0) {
-                viewZ -= viewZAdj;
-            }
-        }
-        Matrix.rotateM(mViewMatrix, 0, viewAngle, 0.0f, 1.0f, 0.0f);
-        Matrix.translateM(mViewMatrix, 0, viewX, 0.0f, viewZ);
+            float cos = (float) Math.cos(radian);
+            float sin = (float) Math.sin(radian);
+
+            translation[3 * i] = radius * cos;
+            translation[3 * i + 1] = radius * sin;
+            translation[3 * i + 2] = 0.0f;
+        }*/
+
+        //iCube.draw(mMVPMatrix, translation);
+        myTriangle.draw(mMVPMatrix);
+
+//        /**
+//        if (view1) {
+//            if (viewAngle < desiredViewAngle) {
+//                viewAngle += viewAngleAdj;
+//            }
+//            if (viewX < desiredViewX) {
+//                viewX += viewXAdj;
+//            }
+//            if (viewZ < desiredViewZ) {
+//                viewZ += viewZAdj;
+//            }
+//        } else {
+//            if (viewAngle > 0) {
+//                viewAngle -= viewAngleAdj;
+//            }
+//            if (viewX > 0) {
+//                viewX -= viewXAdj;
+//            }
+//            if (viewZ > 0) {
+//                viewZ -= viewZAdj;
+//            }
+//        }
+//        Matrix.rotateM(mViewMatrix, 0, viewAngle, 0.0f, 1.0f, 0.0f);
+//        Matrix.translateM(mViewMatrix, 0, viewX, 0.0f, viewZ);
+//        */
 
         //Matrix.setIdentityM(mViewMatrix, 0); // view matrix set to identity for ortho projection
 
         // Calculate the projection and view transformation
-        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
-        /** --- Triangle Specific Rotation
-        // Create a rotation transformation for the triangle
-        long time = SystemClock.uptimeMillis() % 4000L;
-        float angle = 0.090f * ((int) time);
-        Matrix.setRotateM(mRotationMatrix, 0, angle, 0, 0, -1.0f);
-         */
+//        /** --- Triangle Specific Rotation
+//        // Create a rotation transformation for the triangle
+//        long time = SystemClock.uptimeMillis() % 4000L;
+//        float angle = 0.090f * ((int) time);
+//        Matrix.setRotateM(mRotationMatrix, 0, angle, 0, 0, -1.0f);
+//         */
+//
+//        // Cube rotation
+//        long time = SystemClock.uptimeMillis() % 4000L;
+//        float angle = 0.090f * ((int) time);
+//        Matrix.setRotateM(mRotationMatrix, 0, angle, -1.0f, -1.0f, 0.0f);
+//
+//        //Matrix.setIdentityM(mRotationMatrix, 0);
+//
+//        // Create the translation matrix
+//        Matrix.setIdentityM(mTranslationMatrix, 0);
+//        // Translates the cube along the z-axis to go between foreground and background
+//        depth += adjustment;
+//        if (depth <= -5.0f || depth > 0.0f) {
+//            adjustment *= -1.0f;
+//        }
+//        Matrix.translateM(mTranslationMatrix, 0, 0.0f, 0.0f, depth);
+//
+//        // Combine the rotation and the translation matrix to make the model matrix
+//        // NOTE: Translation MUST go first in order to have the move THEN spin
+//        Matrix.multiplyMM(mModelMatrix, 0, mTranslationMatrix, 0, mRotationMatrix, 0);
+//
+//        // Combine the rotation matrix with the projection and camera view
+//        // Note that the mMVPMatrix factor *must be first* in order
+//        // for the matrix multiplication product to be correct.
+//        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mModelMatrix, 0);
+//
+//        //myTriangle.draw(scratch);
+//        //mySquare.draw(scratch);
+//
+//        //myCube.draw(scratch);
+//        //myCubeOutline.draw(scratch);
+//
+//        // draw the other cube
+//        /*
+//        Matrix.setIdentityM(mTranslationMatrix, 0);
+//        Matrix.translateM(mTranslationMatrix, 0, 1.0f, 0.0f, -2.5f);
+//        Matrix.multiplyMM(mModelMatrix, 0, mTranslationMatrix, 0, mRotationMatrix, 0);
+//        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mModelMatrix, 0);
+//        myOtherCube.draw(scratch);
+//        */
 
-        // Cube rotation
-        long time = SystemClock.uptimeMillis() % 4000L;
-        float angle = 0.090f * ((int) time);
-        Matrix.setRotateM(mRotationMatrix, 0, angle, -1.0f, -1.0f, 0.0f);
-
-        //Matrix.setIdentityM(mRotationMatrix, 0);
-
-        // Create the translation matrix
-        Matrix.setIdentityM(mTranslationMatrix, 0);
-        // Translates the cube along the z-axis to go between foreground and background
-        depth += adjustment;
-        if (depth <= -5.0f || depth > 0.0f) {
-            adjustment *= -1.0f;
-        }
-        Matrix.translateM(mTranslationMatrix, 0, 0.0f, 0.0f, depth);
-
-        // Combine the rotation and the translation matrix to make the model matrix
-        // NOTE: Translation MUST go first in order to have the move THEN spin
-        Matrix.multiplyMM(mModelMatrix, 0, mTranslationMatrix, 0, mRotationMatrix, 0);
-
-        // Combine the rotation matrix with the projection and camera view
-        // Note that the mMVPMatrix factor *must be first* in order
-        // for the matrix multiplication product to be correct.
-        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mModelMatrix, 0);
-
-        //myTriangle.draw(scratch);
-        //mySquare.draw(scratch);
-
-        //myCube.draw(scratch);
-        //myCubeOutline.draw(scratch);
-
-        // draw the other cube
-        /*
-        Matrix.setIdentityM(mTranslationMatrix, 0);
-        Matrix.translateM(mTranslationMatrix, 0, 1.0f, 0.0f, -2.5f);
-        Matrix.multiplyMM(mModelMatrix, 0, mTranslationMatrix, 0, mRotationMatrix, 0);
-        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mModelMatrix, 0);
-        myOtherCube.draw(scratch);
-        */
-
-        myRing.draw(mMVPMatrix);
+        //myRing.draw(mMVPMatrix);
     }
 
     /*
@@ -212,11 +236,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
         // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
-        int shader = GLES20.glCreateShader(type);
+        int shader = GLES30.glCreateShader(type);
 
         // add the source code to the shader and compile it
-        GLES20.glShaderSource(shader, shaderCode);
-        GLES20.glCompileShader(shader);
+        GLES30.glShaderSource(shader, shaderCode);
+        GLES30.glCompileShader(shader);
 
         return shader;
     }

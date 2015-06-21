@@ -99,7 +99,7 @@ public class Cube {
             -0.3f, -0.3f, -0.3f,
             0.3f, -0.3f, 0.3f,
             -0.3f, -0.3f, 0.3f,
-            -0.3f, -0.3f, -0.3f,
+            -0.3f, -0.3f, -0.3f
 
             /*
             -0.3f,  0.3f, 0.3f,   // top left -- front face
@@ -266,7 +266,6 @@ public class Cube {
         GLES20.glUseProgram(mProgram);
 
         /** Textures */
-        /*
         // get handle to fragment shader's uTexture member
         mTextureUniformHandle = GLES20.glGetUniformLocation(mProgram, "uTexture");
 
@@ -286,16 +285,15 @@ public class Cube {
 
         // Pass in the texture coordinate information. every vertex needs 2 values to define texture
         GLES20.glVertexAttribPointer(mTextureCoordinateHandle, mTextureCoordinateDataSize, GLES20.GL_FLOAT, false,
-                0, cubeTextureCoordinatesBuffer);*/
+                0, cubeTextureCoordinatesBuffer);
 
 
         /** Position */
-        // get handle to vertex shader's vPosition member
-        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
         // Enable a handle to the square vertices
         GLES20.glEnableVertexAttribArray(mPositionHandle);
 
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, );
+        // get handle to vertex shader's vPosition member
+        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
 
         // Prepare the square coordinate data
         GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
