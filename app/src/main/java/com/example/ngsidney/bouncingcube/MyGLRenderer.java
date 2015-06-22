@@ -115,6 +115,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 //    float desiredViewZ = 2.5f;
 
     float back = -1.0f;
+    int i = 0;
 
     /*
         Called on each redraw of the view
@@ -122,7 +123,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         float[] scratch = new float[16];
-        float[] translation = new float[iCube.numInstances * 3];
+        float[] translation = new float[2/*iCube.numInstances * 3*/];
 
         // Redraw background color
         GLES30.glClearDepthf(1.0f);
@@ -139,22 +140,26 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
-        float radius = (float) (iCube.numInstances / ( 2 * Math.PI ));
+        float radius = (float) (10/*iCube.numInstances*/ / ( 2 * Math.PI ));
 
-        for (int i = 0; i < iCube.numInstances; i++) {
-            float radian = 2 * (float) Math.PI * (i / (float) iCube.numInstances);
+        //for (int i = 0; i < iCube.numInstances; i++) {
+            float radian = 2 * (float) Math.PI * (i / (float) 10/*iCube.numInstances*/);
 
             float cos = (float) Math.cos(radian);
             float sin = (float) Math.sin(radian);
 
-            translation[3 * i] = radius * cos;
-            translation[3 * i + 1] = radius * sin;
-            translation[3 * i + 2] = 0.0f;
-        }
+            translation[0] = radius * cos;
+            translation[1] = radius * sin;
+            //translation[2] = 0.0f;
+        //}
 
         myTriangle.draw(mMVPMatrix);
 
         iCube.draw(mMVPMatrix, translation);
+        i++;
+        if (i > 10) {
+            i = 0;
+        }
 
 //        /**
 //        if (view1) {

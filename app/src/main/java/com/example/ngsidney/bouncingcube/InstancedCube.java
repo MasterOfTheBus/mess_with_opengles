@@ -131,7 +131,7 @@ public class InstancedCube {
 
         // bind the positional data
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[0]);
-        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, /*numInstances * */18 * 4, vertexBuffer, GLES30.GL_STATIC_DRAW);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, /*numInstances * */18 * 4, vertexBuffer, GLES30.GL_DYNAMIC_DRAW);
 
 //        // bind the mvp matrix
 //        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[1]);
@@ -245,6 +245,29 @@ public class InstancedCube {
                 vertexStride, 0); // TODO: should be 16, and 16 * 4?
         GLES30.glVertexAttribDivisor(POSITION_LOC, 1);
 */
+        float zCoord = 1.0f;
+        float minX = translation[0] - side/2;
+        float maxX = translation[0] + side/2;
+        float minY = translation[1] - side/2;
+        float maxY = translation[1] + side/2;
+        float newVertex[] = {
+                minX, minY, zCoord, // bottom left
+                maxX, maxY, zCoord,
+                minX, maxY, zCoord,
+                // triangle 2
+                minX, minY, zCoord,
+                maxX, minY, zCoord,
+                maxX, maxY, zCoord
+        };
+        ByteBuffer bb = ByteBuffer.allocateDirect(newVertex.length * 4);
+        bb.order(ByteOrder.nativeOrder());
+        FloatBuffer fb = bb.asFloatBuffer();
+        fb.put(newVertex);
+        fb.position(0);
+
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertexVBO);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, 18 * 4, null, GLES30.GL_DYNAMIC_DRAW);
+        GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, 0, 18 * 4, fb);
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertexVBO);
         GLES30.glEnableVertexAttribArray(POSITION_LOC);
