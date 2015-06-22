@@ -8,6 +8,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.util.Log;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -54,11 +55,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         // Set the background frame color
-        GLES20.glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+        GLES30.glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 
         //Hide the hidden surfaces using these APIs
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-        GLES20.glDepthFunc(GLES20.GL_LESS);
+        GLES30.glEnable(GLES30.GL_DEPTH_TEST);
+        GLES30.glDepthFunc(GLES30.GL_LESS);
         //GLES20.glDepthMask(true);
 
 //        // Init a triangle and a square
@@ -71,7 +72,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         //myRing = new Ring();
 
-        //iCube = new InstancedCube();
+        iCube = new InstancedCube();
     }
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -83,11 +84,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     /*
         Called if geometry of the view changes
      */
-    private float far = 50.0f;
+    private float far = 200.0f;
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         // Define the area of the drawing context to draw to
-        GLES20.glViewport(0, 0, width, height);
+        GLES30.glViewport(0, 0, width, height);
 
         // Populate a projection matrix which will be used with a camera view to more closely
         // simulate how objects are seen with the eye
@@ -113,7 +114,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 //    float desiredViewX = 1.0f;
 //    float desiredViewZ = 2.5f;
 
-    float radius = 160.0f;
+    float back = -1.0f;
 
     /*
         Called on each redraw of the view
@@ -121,20 +122,25 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         float[] scratch = new float[16];
-        //float[] translation = new float[iCube.numInstances * 3];
+        float[] translation = new float[iCube.numInstances * 3];
 
         // Redraw background color
-        GLES20.glClearDepthf(1.0f);
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        GLES30.glClearDepthf(1.0f);
+        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT | GLES30.GL_DEPTH_BUFFER_BIT);
 
         // Define the camera view
         // Set the camera position (View matrix)
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f); // the view matrix used for triangle
 
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
-        Matrix.translateM(mViewMatrix, 0, 0, 0, -30.0f);
+        Matrix.translateM(mViewMatrix, 0, 0, 0, back);
+        if (back > -50.0f/*-1 * (far - 10.0f)*/) {
+            back -= 0.5f;
+        }
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-/*
+
+        float radius = (float) (iCube.numInstances / ( 2 * Math.PI ));
+
         for (int i = 0; i < iCube.numInstances; i++) {
             float radian = 2 * (float) Math.PI * (i / (float) iCube.numInstances);
 
@@ -144,10 +150,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             translation[3 * i] = radius * cos;
             translation[3 * i + 1] = radius * sin;
             translation[3 * i + 2] = 0.0f;
-        }*/
+        }
 
-        //iCube.draw(mMVPMatrix, translation);
         myTriangle.draw(mMVPMatrix);
+
+        iCube.draw(mMVPMatrix, translation);
 
 //        /**
 //        if (view1) {
@@ -241,6 +248,15 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // add the source code to the shader and compile it
         GLES30.glShaderSource(shader, shaderCode);
         GLES30.glCompileShader(shader);
+
+        int[] compiled = new int[1];
+        GLES30.glGetShaderiv(shader, GLES30.GL_COMPILE_STATUS, compiled, 0);
+
+        if (compiled[0] == 0) {
+            Log.e("blah", GLES30.glGetShaderInfoLog(shader));
+            GLES30.glDeleteShader(shader);
+            return 0;
+        }
 
         return shader;
     }
