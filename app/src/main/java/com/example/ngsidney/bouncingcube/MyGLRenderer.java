@@ -10,6 +10,8 @@ import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.util.Log;
 
+import java.util.Arrays;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -104,16 +106,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private float[] mRotationMatrix = new float[16];
     private float[] mTranslationMatrix = new float[16];
 
-//    float viewAngle = 0.0f;
-//    float viewX = 0.0f;
-//    float viewZ = 0.0f;
-//    float viewAngleAdj = 9.0f;
-//    float viewXAdj = 0.1f;
-//    float viewZAdj = 0.25f;
-//    float desiredViewAngle = 90.0f;
-//    float desiredViewX = 1.0f;
-//    float desiredViewZ = 2.5f;
-
     float back = -1.0f;
     //int i = 0;
 
@@ -122,6 +114,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     */
     @Override
     public void onDrawFrame(GL10 gl) {
+        Log.d("bleh", "draw frame");
         float[] scratch = new float[16];
         float[] positions = new float[3 * iCube.numInstances];
 
@@ -140,16 +133,29 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
-        float pos = 0.0f;
-        for (int i = 0; i < iCube.numInstances; i++) {
-            positions[i * 3] = pos + i;
-            positions[i*3 + 1] = pos;
-            positions[i*3 + 2] = pos;
+        float pos = -250.0f;
+        int instance = 0;
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 100; j++) {
+                positions[instance * 3] = pos + i * 5;
+                positions[instance*3 + 1] = pos + j * 5;
+                positions[instance*3 + 2] = -200;
+
+                instance++;
+            }
         }
 
         //myTriangle.draw(mMVPMatrix);
 
+        // instanced rendering
         iCube.draw(mMVPMatrix, positions);
+
+        // regular rendering
+//        for (int i = 0; i < iCube.numInstances; i++) {
+//            float posi[] = Arrays.copyOfRange(positions, i * 3, i *3 + 3);
+//            iCube.drawReg(mMVPMatrix, posi);
+//        }
+
 //        i++;
 //        if (i > 10) {
 //            i = 0;

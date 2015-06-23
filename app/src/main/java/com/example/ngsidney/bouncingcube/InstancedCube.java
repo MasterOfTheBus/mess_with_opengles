@@ -20,7 +20,7 @@ import java.nio.IntBuffer;
 public class InstancedCube {
     final float side = 3.0f;
 
-    public final int numInstances = 10;
+    public final int numInstances = 10000;
 
     private FloatBuffer vertexBuffer;
     private final int mProgram;
