@@ -143,7 +143,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         float pos = 0.0f;
         for (int i = 0; i < iCube.numInstances; i++) {
             positions[i * 3] = pos + i;
-            positions[i*3 + 1] = pos + i;
+            positions[i*3 + 1] = pos;
             positions[i*3 + 2] = pos;
         }
 

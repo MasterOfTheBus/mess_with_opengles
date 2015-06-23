@@ -20,7 +20,7 @@ import java.nio.IntBuffer;
 public class InstancedCube {
     final float side = 3.0f;
 
-    public final int numInstances = 1;
+    public final int numInstances = 10;
 
     private FloatBuffer vertexBuffer;
     private final int mProgram;
@@ -30,17 +30,21 @@ public class InstancedCube {
     private final int mPosVBO;
 
     // Attribute locations
-    private final int VERTEX_LOC = 0;
-    private final int POSITION_LOC = 1;
+    private int vertexAttr;
+    private int posAttr;
+//    private final int VERTEX_LOC = 0;
+//    private final int POSITION_LOC = 1;
 
     // vertex shader for rendering vertices
     private final String vertexShaderCode =
             // This matrix member variable provides a hook to manipulate
             // the coordinates of the objects that use this vertex shader
-            "layout(location = 0) in vec4 a_vertex;   \n" +
-                    "layout(location = 1) in vec4 a_position;  \n" +
+            //"layout(location = 0) in vec4 a_vertex;   \n" +
+            //"layout(location = 1) in vec4 a_position;  \n" +
                     //"layout(location = 1) in mat4 a_mvpMatrix;  \n" +
                     //"out vec4 v_color;  \n" +
+                    "attribute vec4 a_vertex;" +
+                    "attribute vec4 a_position;" +
                     "uniform mat4 a_mvpMatrix;" +
                     //"attribute vec4 vPosition;" +
                     "void main() {  \n" +
@@ -136,13 +140,17 @@ public class InstancedCube {
         // Add program to OpenGL ES environment
         GLES30.glUseProgram(mProgram);
 
+        // get the handles to the attribute
+        vertexAttr = GLES30.glGetAttribLocation(mProgram, "a_vertex");
+        posAttr = GLES30.glGetAttribLocation(mProgram, "a_position");
+
         // load vertices
+        GLES30.glEnableVertexAttribArray(vertexAttr);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertexVBO);
-        GLES30.glVertexAttribPointer(VERTEX_LOC, COORDS_PER_VERTEX,
+        GLES30.glVertexAttribPointer(vertexAttr, COORDS_PER_VERTEX,
                 GLES30.GL_FLOAT, false,
                 vertexStride, 0);
-        GLES30.glEnableVertexAttribArray(VERTEX_LOC);
-        GLES30.glVertexAttribDivisor(VERTEX_LOC, 0);
+        GLES30.glVertexAttribDivisor(vertexAttr, 0);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
 
@@ -157,10 +165,10 @@ public class InstancedCube {
         GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, 0, positions.length * 4, fb);
 
 //        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mPosVBO);
-        GLES30.glEnableVertexAttribArray(POSITION_LOC);
-        GLES30.glVertexAttribPointer(POSITION_LOC, COORDS_PER_VERTEX, GLES30.GL_FLOAT,
+        GLES30.glEnableVertexAttribArray(posAttr);
+        GLES30.glVertexAttribPointer(posAttr, COORDS_PER_VERTEX, GLES30.GL_FLOAT,
                 false, vertexStride, 0);
-        GLES30.glVertexAttribDivisor(POSITION_LOC, 1);
+        GLES30.glVertexAttribDivisor(posAttr, 1);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
 
