@@ -29,6 +29,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private CubeOutline myCubeOutline;
     private Ring myRing;
     private InstancedCube iCube;
+    private InstancedSquare iSquare;
 
     float eyeX = 0.0f;
     float eyeY = 0.0f;
@@ -74,7 +75,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         //myRing = new Ring();
 
-        iCube = new InstancedCube();
+        //iCube = new InstancedCube();
+        iSquare = new InstancedSquare();
+
     }
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -116,7 +119,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         Log.d("bleh", "draw frame");
         float[] scratch = new float[16];
-        float[] positions = new float[3 * iCube.numInstances];
+        float[] positions = new float[4 * iSquare.numInstances];
+        float[] sizes = new float[2 * iSquare.numInstances];
 
         // Redraw background color
         GLES30.glClearDepthf(1.0f);
@@ -127,19 +131,24 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f); // the view matrix used for triangle
 
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
-        Matrix.translateM(mViewMatrix, 0, 0, 0, back);
-        if (back > -50.0f/*-1 * (far - 10.0f)*/) {
+        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
+        if (back > -50.0f /*125*/) {
             back -= 0.5f;
         }
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
-        float pos = -250.0f;
+        float pos = 0.0f;//-250.0f; // instanced -250
         int instance = 0;
         for (int i = 0; i < 100; i++) {
             for (int j = 0; j < 100; j++) {
+                //for (int k = 0; k < )
                 positions[instance * 3] = pos + i * 5;
                 positions[instance*3 + 1] = pos + j * 5;
-                positions[instance*3 + 2] = -200;
+                positions[instance*3 + 2] = 0.0f;//-200;
+                positions[instance * 3 + 3] = 4.0f;
+
+                sizes[instance * 2] = 2.0f;
+                sizes[instance * 2 + 1] = 2.0f;
 
                 instance++;
             }
@@ -147,14 +156,14 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         //myTriangle.draw(mMVPMatrix);
 
-        // instanced rendering
-        iCube.draw(mMVPMatrix, positions);
-
-        // regular rendering
-//        for (int i = 0; i < iCube.numInstances; i++) {
+//        for (int i = 0; i < 10000; i++) {
 //            float posi[] = Arrays.copyOfRange(positions, i * 3, i *3 + 3);
-//            iCube.drawReg(mMVPMatrix, posi);
+//            myTriangle.drawDiff(mMVPMatrix, posi);
 //        }
+
+        // instanced rendering
+        //iCube.draw(mMVPMatrix, positions);
+        iSquare.draw(mMVPMatrix, positions, sizes);
 
 //        i++;
 //        if (i > 10) {

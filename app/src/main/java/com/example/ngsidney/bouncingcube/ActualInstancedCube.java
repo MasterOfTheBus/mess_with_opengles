@@ -1,23 +1,16 @@
 package com.example.ngsidney.bouncingcube;
 
-import android.annotation.TargetApi;
-import android.opengl.GLES20;
 import android.opengl.GLES30;
-import android.opengl.GLES31Ext;
-import android.opengl.Matrix;
-import android.os.Build;
-import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 /**
  * Created by ngsidney on 6/19/15.
  */
-public class InstancedCube {
+public class ActualInstancedCube {
     final float side = 3.0f;
 
     public final int numInstances = 10000;
@@ -27,6 +20,7 @@ public class InstancedCube {
 
     // VBO handles
     private final int mVertexVBO;
+    private final int mIndexVBO;
     private final int mPosVBO;
 
     // Attribute locations
@@ -51,7 +45,6 @@ public class InstancedCube {
                     //"  v_color = a_color;   \n" +
                     "  vec4 vertex_pos = a_vertex + a_position;" +
                     "  gl_Position = a_mvpMatrix * vertex_pos;  \n" +
-                            "  gl_PointSize = 20.0f;" +
                     "}";
 
     // Use to access and set the view transformation
@@ -71,21 +64,30 @@ public class InstancedCube {
     // number of coordinates per vertex in this array
     static final int COORDS_PER_VERTEX = 3;
     static float cubeCoords[] = {   // in counterclockwise order:
-            // Front face -- Square
-//            -1.0f, 1.0f, 1.0f,
-//            -1.0f, -1.0f, 1.0f,
-//            1.0f, 1.0f, 1.0f,
-//            -1.0f, -1.0f, 1.0f,
-//            1.0f, -1.0f, 1.0f,
-//            1.0f, 1.0f, 1.0f
+            // Front face
+            -1.0f, 1.0f, 1.0f, // front top left
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, -1.0f, // back top left
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f
+    };
 
-            0.0f, 0.0f, 1.0f // only a point
+    static int indexOrder[] = {
+            0, 1, 3, 1, 2, 3, // front
+            3, 2, 7, 2, 6, 7, // right
+            7, 6, 4, 6, 5, 4, // back
+            4, 5, 0, 5, 1, 0, // left
+            4, 0, 7, 0, 3, 7, // top
+            1, 5, 2, 5, 6, 2 // bottom
     };
 
     // Set color with red, green, blue and alpha (opacity) values
     float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
 
-    public InstancedCube() {
+    public ActualInstancedCube() {
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(cubeCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
@@ -93,9 +95,15 @@ public class InstancedCube {
         vertexBuffer.put(cubeCoords);
         vertexBuffer.position(0);
 
+        ByteBuffer cb = ByteBuffer.allocateDirect(indexOrder.length * 4);
+        bb.order(ByteOrder.nativeOrder());
+        IntBuffer indexBuffer = bb.asIntBuffer();
+        indexBuffer.put(indexOrder);
+        indexBuffer.position(0);
+
         // VBOs
-        final int buffers[] = new int[2];
-        GLES30.glGenBuffers(2, buffers, 0);
+        final int buffers[] = new int[3];
+        GLES30.glGenBuffers(3, buffers, 0);
 
         // bind the vertex data - will never change, do a static draw
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[0]);
@@ -103,14 +111,21 @@ public class InstancedCube {
                 vertexBuffer, GLES30.GL_STATIC_DRAW);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
+        // bind the index data - will never change, do a static draw
+        GLES30.glBindBuffer(GLES30.GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+        GLES30.glBufferData(GLES30.GL_ELEMENT_ARRAY_BUFFER, indexOrder.length * 4,
+                indexBuffer, GLES30.GL_STATIC_DRAW);
+        GLES30.glBindBuffer(GLES30.GL_ELEMENT_ARRAY_BUFFER, 0);
+
         // bind the positional data - the center of the square
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[1]);
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[2]);
         GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, numInstances * COORDS_PER_VERTEX * 4, null, GLES30.GL_DYNAMIC_DRAW);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
         // save the handles to the VBOs
         mVertexVBO = buffers[0];
-        mPosVBO = buffers[1];
+        mIndexVBO = buffers[1];
+        mPosVBO = buffers[2];
 
         // Run the shader code compiler for the GLSL spec
         int vertexShader = MyGLRenderer.loadShader(GLES30.GL_VERTEX_SHADER,
@@ -187,9 +202,11 @@ public class InstancedCube {
         // Pass the projection and view transformation to the shader
         GLES30.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, vpMatrix, 0);
 
+        GLES30.glBindBuffer(GLES30.GL_ELEMENT_ARRAY_BUFFER, mIndexVBO);
+
+        GLES30.glDrawElementsInstanced(GLES30.GL_TRIANGLES, indexOrder.length, GLES30.GL_INT, null, numInstances);
 
         //GLES30.glDrawArraysInstanced(GLES30.GL_TRIANGLES, 0, 6, numInstances);
-        GLES30.glDrawArraysInstanced(GLES30.GL_POINTS, 0, 1, numInstances);
         //GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 6);
 
         GLES30.glDisableVertexAttribArray(mPosVBO);
