@@ -20,7 +20,7 @@ public class InstancedSquare {
     // VBO handles
     private final int mVertexVBO;
     private final int mPosVBO;
-    //private final int mSizeVBO;
+    private final int mSizeVBO;
 
     // Attribute locations
     private int vertexAttr;
@@ -38,7 +38,7 @@ public class InstancedSquare {
                     //"out vec4 v_color;  \n" +
                     "attribute vec4 a_vertex;" +
                     "attribute vec4 a_position;" +
-                            //"attribute vec4 a_size;" +
+                            "attribute vec4 a_size;" +
 
                     "uniform mat4 a_mvpMatrix;" +
 //                            "uniform vec3 u_camUp;" +
@@ -49,7 +49,7 @@ public class InstancedSquare {
                     //"  vec4 vertex_pos = a_vertex + a_position;" +
                     //        "  vec4 vertex_pos = a_vertex + vec4(1.0f, 0.0f, 0.0f, 0.0f) * a_position.x * a_size.x + vec4(0.0f, 1.0f, 0.0f, 0.0f) * a_position.y * a_size.y;" +
                     //        "  vec4 vertex_pos = vec4(a_vertex.x * a_size.x, a_vertex.y * a_size.y, a_vertex.z, a_vertex.w) + a_position;" +
-                            "  vec3 vertex_pos = vec3(a_vertex.x * a_position.w, a_vertex.y * a_position.w, a_vertex.z) + a_position.xyz;" +
+                            "  vec3 vertex_pos = vec3(a_vertex.x * a_size.x, a_vertex.y * a_size.y, a_vertex.z) + a_position.xyz;" +
                             "  gl_Position = a_mvpMatrix * vec4(vertex_pos, 1.0f);" + // pass only the positions
                             //                    "  gl_Position = a_mvpMatrix * vertex_pos;  \n" +
 //                            "  gl_PointSize = 20.0f;" +
@@ -95,8 +95,8 @@ public class InstancedSquare {
         vertexBuffer.position(0);
 
         // VBOs
-        final int buffers[] = new int[2];
-        GLES30.glGenBuffers(2, buffers, 0);
+        final int buffers[] = new int[3];
+        GLES30.glGenBuffers(3, buffers, 0);
 
         // bind the vertex data - will never change, do a static draw
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[0]);
@@ -109,15 +109,15 @@ public class InstancedSquare {
         GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, numInstances * COORDS_PER_VERTEX * 4, null, GLES30.GL_DYNAMIC_DRAW);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
-//        // bind the size data
-//        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[2]);
-//        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, numInstances * 2 * 4, null, GLES30.GL_DYNAMIC_DRAW);
-//        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+        // bind the size data
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[2]);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, numInstances * 2 * 4, null, GLES30.GL_DYNAMIC_DRAW);
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
         // save the handles to the VBOs
         mVertexVBO = buffers[0];
         mPosVBO = buffers[1];
-        //mSizeVBO = buffers[2];
+        mSizeVBO = buffers[2];
 
         // Run the shader code compiler for the GLSL spec
         int vertexShader = MyGLRenderer.loadShader(GLES30.GL_VERTEX_SHADER,
@@ -153,7 +153,7 @@ public class InstancedSquare {
         // get the handles to the attribute
         vertexAttr = GLES30.glGetAttribLocation(mProgram, "a_vertex");
         posAttr = GLES30.glGetAttribLocation(mProgram, "a_position");
-        //int sizeAttr = GLES30.glGetAttribLocation(mProgram, "a_size");
+        int sizeAttr = GLES30.glGetAttribLocation(mProgram, "a_size");
 
         // load vertices
         GLES30.glEnableVertexAttribArray(vertexAttr);
@@ -182,21 +182,21 @@ public class InstancedSquare {
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
 
-//        ByteBuffer bb2 = ByteBuffer.allocateDirect(sizes.length * 4);
-//        bb2.order(ByteOrder.nativeOrder());
-//        FloatBuffer sb = bb2.asFloatBuffer();
-//        sb.put(sizes);
-//        sb.position(0);
-//
-//        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mSizeVBO);
-//        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, sizes.length * 4, null, GLES30.GL_DYNAMIC_DRAW);
-//        GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, 0, sizes.length * 4, sb);
-//
-//        GLES30.glEnableVertexAttribArray(sizeAttr);
-//        GLES30.glVertexAttribPointer(sizeAttr, 2, GLES30.GL_FLOAT,
-//                false, 2 * 4, 0);
-//        GLES30.glVertexAttribDivisor(sizeAttr, 1);
-//        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+        ByteBuffer bb2 = ByteBuffer.allocateDirect(sizes.length * 4);
+        bb2.order(ByteOrder.nativeOrder());
+        FloatBuffer sb = bb2.asFloatBuffer();
+        sb.put(sizes);
+        sb.position(0);
+
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mSizeVBO);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, sizes.length * 4, null, GLES30.GL_DYNAMIC_DRAW);
+        GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, 0, sizes.length * 4, sb);
+
+        GLES30.glEnableVertexAttribArray(sizeAttr);
+        GLES30.glVertexAttribPointer(sizeAttr, 2, GLES30.GL_FLOAT,
+                false, 2 * 4, 0);
+        GLES30.glVertexAttribDivisor(sizeAttr, 1);
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
 
         // get handle to fragment shader's vColor member
@@ -210,12 +210,6 @@ public class InstancedSquare {
 
         // Pass the projection and view transformation to the shader
         GLES30.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, vpMatrix, 0);
-
-//        int camRight = GLES30.glGetUniformLocation(mProgram, "u_camRight");
-//        GLES30.glUniform3f(camRight, 1, 0, 0);
-//
-//        int camUp = GLES30.glGetUniformLocation(mProgram, "u_camUp");
-//        GLES30.glUniform3f(camUp, 0, 1, 0);
 
 
         GLES30.glDrawArraysInstanced(GLES30.GL_TRIANGLES, 0, 6, numInstances);
