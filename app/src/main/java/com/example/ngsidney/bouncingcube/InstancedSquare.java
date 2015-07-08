@@ -21,6 +21,7 @@ public class InstancedSquare {
     private final int mVertexVBO;
     private final int mPosVBO;
     private final int mSizeVBO;
+    private final int mColorVBO;
 
     // Attribute locations
     private int vertexAttr;
@@ -39,8 +40,11 @@ public class InstancedSquare {
                     "attribute vec4 a_vertex;" +
                     "attribute vec4 a_position;" +
                             "attribute vec4 a_size;" +
+                            "attribute vec4 a_color;" +
 
                     "uniform mat4 a_mvpMatrix;" +
+
+                            "varying vec4 v_color;" +
 //                            "uniform vec3 u_camUp;" +
 //                            "uniform vec3 u_camRight;" +
                     //"attribute vec4 vPosition;" +
@@ -49,6 +53,7 @@ public class InstancedSquare {
                     //"  vec4 vertex_pos = a_vertex + a_position;" +
                     //        "  vec4 vertex_pos = a_vertex + vec4(1.0f, 0.0f, 0.0f, 0.0f) * a_position.x * a_size.x + vec4(0.0f, 1.0f, 0.0f, 0.0f) * a_position.y * a_size.y;" +
                     //        "  vec4 vertex_pos = vec4(a_vertex.x * a_size.x, a_vertex.y * a_size.y, a_vertex.z, a_vertex.w) + a_position;" +
+                            "  v_color = a_color;" +
                             "  vec3 vertex_pos = vec3(a_vertex.x * a_size.x, a_vertex.y * a_size.y, a_vertex.z) + a_position.xyz;" +
                             "  gl_Position = a_mvpMatrix * vec4(vertex_pos, 1.0f);" + // pass only the positions
                             //                    "  gl_Position = a_mvpMatrix * vertex_pos;  \n" +
@@ -61,12 +66,12 @@ public class InstancedSquare {
     // Fragment shader for rendering the face of the shape with colors and textures
     private final String fragmentShaderCode =
             "precision mediump float;" +
-                    //"in vec4 v_color;   \n" +
+                    "varying vec4 v_color;   \n" +
                     //"layout(location=0) out vec4 outColor;  \n" +
-                    "uniform vec4 vColor;" +
+                    //"uniform vec4 vColor;" +
                     "void main() {" +
                     //"  outColor = v_color;" +
-                    "  gl_FragColor = vColor;" +
+                    "  gl_FragColor = v_color;" +
                     "}";
 
     // number of coordinates per vertex in this array
@@ -95,8 +100,8 @@ public class InstancedSquare {
         vertexBuffer.position(0);
 
         // VBOs
-        final int buffers[] = new int[3];
-        GLES30.glGenBuffers(3, buffers, 0);
+        final int buffers[] = new int[4];
+        GLES30.glGenBuffers(4, buffers, 0);
 
         // bind the vertex data - will never change, do a static draw
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[0]);
@@ -114,10 +119,16 @@ public class InstancedSquare {
         GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, numInstances * 2 * 4, null, GLES30.GL_DYNAMIC_DRAW);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
+        // bind the color data
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[3]);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, numInstances * 4 * 4, null, GLES30.GL_DYNAMIC_DRAW);
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+
         // save the handles to the VBOs
         mVertexVBO = buffers[0];
         mPosVBO = buffers[1];
         mSizeVBO = buffers[2];
+        mColorVBO = buffers[3];
 
         // Run the shader code compiler for the GLSL spec
         int vertexShader = MyGLRenderer.loadShader(GLES30.GL_VERTEX_SHADER,
@@ -146,7 +157,7 @@ public class InstancedSquare {
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
     //@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    public void draw(float[] vpMatrix, float[] positions, float[] sizes) {
+    public void draw(float[] vpMatrix, float[] positions, float[] sizes, float[] colors) {
         // Add program to OpenGL ES environment
         GLES30.glUseProgram(mProgram);
 
@@ -154,6 +165,7 @@ public class InstancedSquare {
         vertexAttr = GLES30.glGetAttribLocation(mProgram, "a_vertex");
         posAttr = GLES30.glGetAttribLocation(mProgram, "a_position");
         int sizeAttr = GLES30.glGetAttribLocation(mProgram, "a_size");
+        int coloAttr = GLES30.glGetAttribLocation(mProgram, "a_color");
 
         // load vertices
         GLES30.glEnableVertexAttribArray(vertexAttr);
@@ -199,11 +211,28 @@ public class InstancedSquare {
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
 
-        // get handle to fragment shader's vColor member
-        mColorHandle = GLES30.glGetUniformLocation(mProgram, "vColor");
+        ByteBuffer bb3 = ByteBuffer.allocateDirect(colors.length * 4);
+        bb3.order(ByteOrder.nativeOrder());
+        FloatBuffer cb = bb3.asFloatBuffer();
+        cb.put(colors);
+        cb.position(0);
 
-        // Set color for drawing the triangle
-        GLES30.glUniform4fv(mColorHandle, 1, color, 0);
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mColorVBO);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, colors.length * 4, null, GLES30.GL_DYNAMIC_DRAW);
+        GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, 0, colors.length * 4, cb);
+
+        GLES30.glEnableVertexAttribArray(coloAttr);
+        GLES30.glVertexAttribPointer(coloAttr, 4, GLES30.GL_FLOAT,
+                false, 4 * 4, 0);
+        GLES30.glVertexAttribDivisor(sizeAttr, 1);
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+
+
+//        // get handle to fragment shader's vColor member
+//        mColorHandle = GLES30.glGetUniformLocation(mProgram, "vColor");
+//
+//        // Set color for drawing the triangle
+//        GLES30.glUniform4fv(mColorHandle, 1, color, 0);
 
         // get handle to shape's transformation matrix
         mMVPMatrixHandle = GLES30.glGetUniformLocation(mProgram, "a_mvpMatrix");

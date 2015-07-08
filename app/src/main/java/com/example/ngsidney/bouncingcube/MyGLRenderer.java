@@ -121,6 +121,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         float[] scratch = new float[16];
         float[] positions = new float[4 * iSquare.numInstances];
         float[] sizes = new float[2 * iSquare.numInstances];
+        float[] colors = new float[iSquare.numInstances * 4 * 6];
 
         // Redraw background color
         GLES30.glClearDepthf(1.0f);
@@ -139,6 +140,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         float pos = 0.0f;//-250.0f; // instanced -250
         int instance = 0;
+        int index = 0;
         for (int i = 0; i < 100; i++) {
             for (int j = 0; j < 100; j++) {
                 //for (int k = 0; k < )
@@ -149,6 +151,17 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
                 sizes[instance * 2] = 2.0f;
                 sizes[instance * 2 + 1] = 2.0f;
+
+                for (int k = 0; k < 6; k++) {
+                    colors[index] = 1.0f;
+                    index++;
+                    colors[index] = 0.0f;
+                    index++;
+                    colors[index] = 0.0f;
+                    index++;
+                    colors[index] = 1.0f;
+                    index++;
+                }
 
                 instance++;
             }
@@ -163,7 +176,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         // instanced rendering
         //iCube.draw(mMVPMatrix, positions);
-        iSquare.draw(mMVPMatrix, positions, sizes);
+        iSquare.draw(mMVPMatrix, positions, sizes, colors);
 
 //        i++;
 //        if (i > 10) {
