@@ -30,6 +30,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private Ring myRing;
     private InstancedCube iCube;
     private InstancedSquare iSquare;
+    private InstancedTexturedSquare itSquare;
 
     float eyeX = 0.0f;
     float eyeY = 0.0f;
@@ -47,6 +48,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     MyGLSurfaceView surfaceView;
 
     boolean view1 = false;
+
+    public static float scaleFactor = 1.0f;
 
     public MyGLRenderer(MyGLSurfaceView surfaceView) {
         this.surfaceView = surfaceView;
@@ -67,7 +70,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
 //        // Init a triangle and a square
         myTriangle = new Triangle();
-//        mySquare = new Square(surfaceView);
+        mySquare = new Square(surfaceView);
 //        myCube = new Cube(surfaceView);
 //        myOtherCube = new Cube(surfaceView);
 
@@ -77,6 +80,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         //iCube = new InstancedCube();
         iSquare = new InstancedSquare();
+        itSquare = new InstancedTexturedSquare(surfaceView);
 
     }
 
@@ -90,6 +94,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         Called if geometry of the view changes
      */
     private float far = 200.0f;
+    private float ratio;
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         // Define the area of the drawing context to draw to
@@ -97,7 +102,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         // Populate a projection matrix which will be used with a camera view to more closely
         // simulate how objects are seen with the eye
-        float ratio = (float) width / (float) height;
+        ratio = (float) width / (float) height;
 
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
@@ -110,6 +115,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private float[] mTranslationMatrix = new float[16];
 
     float back = -1.0f;
+    float zoom = 1.0f;
     //int i = 0;
 
     /*
@@ -132,10 +138,18 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f); // the view matrix used for triangle
 
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
-        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
-        if (back > -50.0f /*125*/) {
-            back -= 0.5f;
-        }
+        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, -50.0f);
+//        if (back > -50.0f /*125*/) {
+//            back -= 0.5f;
+//        }
+
+        // zoom by adjusting the frustum focal lens; ie change the FOV (how cameras actually do it)
+        Matrix.frustumM(mProjectionMatrix, 0, -ratio/scaleFactor, ratio/scaleFactor, -1.0f/scaleFactor,
+                1.0f/scaleFactor, 1.0f, far);
+//        zoom += 0.01f;
+//        if (zoom > 2.5f)
+//            zoom = 1.0f;
+
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
         float pos = 0.0f;//-250.0f; // instanced -250
@@ -174,9 +188,12 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 //            myTriangle.drawDiff(mMVPMatrix, posi);
 //        }
 
+//        mySquare.draw(mMVPMatrix);
+
         // instanced rendering
         //iCube.draw(mMVPMatrix, positions);
-        iSquare.draw(mMVPMatrix, positions, sizes, colors);
+        //iSquare.draw(mMVPMatrix, positions, sizes, colors);
+        itSquare.draw(mMVPMatrix, positions, sizes, colors);
 
 //        i++;
 //        if (i > 10) {

@@ -58,10 +58,14 @@ public class Square {
     private final int mProgram;
 
     final float[] squareTextureCoordData = {
+//            0.0f, 0.0f,
+//            0.0f, 1.0f,
+//            1.0f, 1.0f,
+//            0.0f, 0.0f,
+//            1.0f, 1.0f,
+//            1.0f, 0.0f
             0.0f, 0.0f,
             0.0f, 1.0f,
-            1.0f, 1.0f,
-            0.0f, 0.0f,
             1.0f, 1.0f,
             1.0f, 0.0f
     };
