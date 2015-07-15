@@ -1,7 +1,10 @@
 package com.example.ngsidney.bouncingcube;
 
 import android.content.Context;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -15,15 +18,14 @@ public class MyGLSurfaceView extends GLSurfaceView{
 
     private final MyGLRenderer mRenderer;
     private ScaleGestureDetector scaleGestureDetector;
+    private GestureDetector gestureDetector;
 
     public MyGLSurfaceView(Context context) {
         super(context);
 
-        /*
         // Create an OpenGL ES 2.0 context
-        setEGLContextClientVersion(2);
-        setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
-        */
+//        setEGLContextClientVersion(2);
+//        setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
 
         setEGLContextClientVersion(3);
         //setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
@@ -35,6 +37,7 @@ public class MyGLSurfaceView extends GLSurfaceView{
         setRenderer(mRenderer);
 
         scaleGestureDetector = new ScaleGestureDetector(context, new ScaleListener());
+        gestureDetector = new GestureDetector(context, new GestureListener());
 
     }
 
@@ -44,6 +47,10 @@ public class MyGLSurfaceView extends GLSurfaceView{
 //            mRenderer.toggleView();
 //        }
         scaleGestureDetector.onTouchEvent(e);
+        gestureDetector.onTouchEvent(e);
+
+
+
         return true;
     }
 
@@ -51,6 +58,23 @@ public class MyGLSurfaceView extends GLSurfaceView{
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             mRenderer.scaleFactor *= Math.max(0.1f, Math.min(detector.getScaleFactor(), 5.0f));
+
+            return true;
+        }
+    }
+
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            float viewportOffsetX = distanceX * 2 * mRenderer.ratio / mRenderer.scaleFactor / (float) Math.sqrt(mRenderer.viewPortWidth);
+            float viewportOffsetY = -distanceY * 2 / mRenderer.scaleFactor / (float) Math.sqrt(mRenderer.viewportHeight);
+
+            Log.d("scroll", "offsetx: " + viewportOffsetX + " offsety: " + viewportOffsetY);
+
+            mRenderer.eyeX += viewportOffsetX;
+            mRenderer.eyeY += viewportOffsetY;
+            mRenderer.centerX += viewportOffsetX;
+            mRenderer.centerY += viewportOffsetY;
 
             return true;
         }

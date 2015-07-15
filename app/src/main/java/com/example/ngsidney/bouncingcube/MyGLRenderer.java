@@ -32,6 +32,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private InstancedSquare iSquare;
     private InstancedTexturedSquare itSquare;
 
+    int AXIS_X_MIN;
+    int AXIS_Y_MIN;
+    int AXIS_X_MAX;
+    int AXIS_Y_MAX;
+
     float eyeX = 0.0f;
     float eyeY = 0.0f;
     float eyeZ = 1.5f;
@@ -42,6 +47,17 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     float upY = 1.0f;
     float upZ = 0.0f;
 
+    float top = 1.0f;
+    float bottom = -1.0f;
+    float near = 1.0f;
+
+    int screenHeight;
+    int screenWidth;
+    int viewportHeight;
+    int viewPortWidth;
+    int viewportX;
+    int viewportY;
+
     float depth = 0.0f;
     float adjustment = -0.075f;
 
@@ -50,6 +66,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     boolean view1 = false;
 
     public static float scaleFactor = 1.0f;
+    private final float halfFov = (float) (Math.atan(top / (eyeZ + near)));
+
 
     public MyGLRenderer(MyGLSurfaceView surfaceView) {
         this.surfaceView = surfaceView;
@@ -94,11 +112,33 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         Called if geometry of the view changes
      */
     private float far = 200.0f;
-    private float ratio;
+    float ratio;
+    static int pHeight;
+    static int pWidth;
+    private final int viewportEnlarger = 5;
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        // Define the area of the drawing context to draw to
         GLES30.glViewport(0, 0, width, height);
+        // Define the area of the drawing context to draw to
+        viewPortWidth = width;
+        viewportHeight = height;
+
+//        viewPortWidth = viewportEnlarger * width;
+//        viewportHeight = viewportEnlarger * height;
+//
+//        int leftOfOrigin = (viewportEnlarger / 2) - 1;
+//
+//        // set the viewport boundaries
+//        AXIS_X_MAX = (viewportEnlarger - leftOfOrigin) * width;
+//        AXIS_X_MIN = -1 * leftOfOrigin * width;
+//        AXIS_Y_MAX = (viewportEnlarger - leftOfOrigin) * height;
+//        AXIS_Y_MIN = -1 * leftOfOrigin * height;
+//
+//        viewportX = AXIS_X_MIN;
+//        viewportY = AXIS_Y_MIN;
+//
+//        GLES30.glViewport(viewportX, viewportY, viewPortWidth, viewportHeight);
+
 
         // Populate a projection matrix which will be used with a camera view to more closely
         // simulate how objects are seen with the eye
@@ -107,8 +147,19 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
         //Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7); // proj matrix for triangle
-        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1.0f, 1.0f, 1.0f, far); // proj matrix for cube
+        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, bottom, top, near, far); // proj matrix for cube
         //Matrix.setIdentityM(mProjectionMatrix, 0); // projection matrix set to identity for ortho projection
+        calcNewDimensionsAfterZoom(0);
+
+    }
+
+    private void calcNewDimensionsAfterZoom(float newZ) {
+        float fHeight = 2 * (float) Math.tan(halfFov) * (eyeZ + far + newZ);
+        float fWidth = ratio * (fHeight);
+
+        pHeight = (int) (viewportHeight * fHeight / (2*top));
+        pWidth = (int) (viewPortWidth * fWidth / (2*ratio));
+
     }
 
     private float[] mRotationMatrix = new float[16];
@@ -116,6 +167,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     float back = -1.0f;
     float zoom = 1.0f;
+    int offsetX = 0;
+    int offsetY = 0;
     //int i = 0;
 
     /*
@@ -123,7 +176,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     */
     @Override
     public void onDrawFrame(GL10 gl) {
-        Log.d("bleh", "draw frame");
+//        Log.d("bleh", "draw frame");
         float[] scratch = new float[16];
         float[] positions = new float[4 * iSquare.numInstances];
         float[] sizes = new float[2 * iSquare.numInstances];
@@ -136,16 +189,18 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // Define the camera view
         // Set the camera position (View matrix)
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f); // the view matrix used for triangle
-
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
         Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, -50.0f);
+        calcNewDimensionsAfterZoom(50.0f);
+//        GLES30.glViewport(viewportX, viewportY, viewPortWidth, viewportHeight);
+
 //        if (back > -50.0f /*125*/) {
 //            back -= 0.5f;
 //        }
 
         // zoom by adjusting the frustum focal lens; ie change the FOV (how cameras actually do it)
-        Matrix.frustumM(mProjectionMatrix, 0, -ratio/scaleFactor, ratio/scaleFactor, -1.0f/scaleFactor,
-                1.0f/scaleFactor, 1.0f, far);
+        Matrix.frustumM(mProjectionMatrix, 0, (-ratio)/scaleFactor, (ratio)/scaleFactor,
+                (-1.0f)/scaleFactor, (1.0f)/scaleFactor, near, far);
 //        zoom += 0.01f;
 //        if (zoom > 2.5f)
 //            zoom = 1.0f;
@@ -181,7 +236,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             }
         }
 
-        //myTriangle.draw(mMVPMatrix);
+//        myTriangle.draw(mMVPMatrix);
 
 //        for (int i = 0; i < 10000; i++) {
 //            float posi[] = Arrays.copyOfRange(positions, i * 3, i *3 + 3);
