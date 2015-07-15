@@ -22,6 +22,10 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
+    private static String TAG = MyGLRenderer.class.getSimpleName();
+
+
+
     private Triangle myTriangle;
     private Square mySquare;
     private Cube myCube;
@@ -108,6 +112,10 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private final float[] mViewMatrix = new float[16];
     private final float[] mModelMatrix = new float[16];
 
+    public int flag1=0;
+    public int flag2=0;
+
+
     /*
         Called if geometry of the view changes
      */
@@ -165,11 +173,12 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private float[] mRotationMatrix = new float[16];
     private float[] mTranslationMatrix = new float[16];
 
-    float back = -1.0f;
     float zoom = 1.0f;
     int offsetX = 0;
     int offsetY = 0;
     //int i = 0;
+    float back = -150.0f;
+    final float WORKING_SCROLL = -50.0f;
 
     /*
         Called on each redraw of the view
@@ -190,7 +199,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // Set the camera position (View matrix)
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f); // the view matrix used for triangle
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
-        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, -50.0f);
+        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
         calcNewDimensionsAfterZoom(50.0f);
 //        GLES30.glViewport(viewportX, viewportY, viewPortWidth, viewportHeight);
 
@@ -199,8 +208,27 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 //        }
 
         // zoom by adjusting the frustum focal lens; ie change the FOV (how cameras actually do it)
-        Matrix.frustumM(mProjectionMatrix, 0, (-ratio)/scaleFactor, (ratio)/scaleFactor,
-                (-1.0f)/scaleFactor, (1.0f)/scaleFactor, near, far);
+//        Matrix.frustumM(mProjectionMatrix, 0, (-ratio)/scaleFactor, (ratio)/scaleFactor,
+//                (-1.0f)/scaleFactor, (1.0f)/scaleFactor, near, far);
+
+
+        if(scaleFactor<=20 && scaleFactor>=1)
+        {
+            Matrix.frustumM(mProjectionMatrix, 0, -ratio / scaleFactor, ratio / scaleFactor, -1.0f / scaleFactor, 1.0f / scaleFactor, 1.0f, far);
+        }
+        if(scaleFactor>=20)
+        {
+            scaleFactor=20;
+        }
+        if(scaleFactor<1)
+        {
+            scaleFactor=1;
+        }
+
+
+
+        Log.d("blah", "scaleFactor: " + scaleFactor);
+
 //        zoom += 0.01f;
 //        if (zoom > 2.5f)
 //            zoom = 1.0f;
@@ -362,6 +390,30 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     public void toggleView() {
         view1 = !view1;
+    }
+
+
+
+    public void progressToNextView()
+    {
+        Log.d(TAG, "_____DoubleTaped______");
+        if(flag2==0 && scaleFactor>=10)
+        {
+            scaleFactor=20;
+            return;
+        }
+        if(flag2==0 && scaleFactor<10)
+        {
+            scaleFactor=10;
+            flag2=1;
+            return;
+        }
+        if(flag2==1)
+        {
+            scaleFactor=20;
+            flag2=0;
+            return;
+        }
     }
 
 }

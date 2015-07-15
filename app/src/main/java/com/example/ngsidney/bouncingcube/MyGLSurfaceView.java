@@ -14,11 +14,13 @@ import android.view.ScaleGestureDetector;
  *
  * The user defined GLSurfaceView
  */
-public class MyGLSurfaceView extends GLSurfaceView{
+public class MyGLSurfaceView extends GLSurfaceView {
 
     private final MyGLRenderer mRenderer;
     private ScaleGestureDetector scaleGestureDetector;
     private GestureDetector gestureDetector;
+    private static String TAG = MyGLSurfaceView.class.getSimpleName();
+
 
     public MyGLSurfaceView(Context context) {
         super(context);
@@ -36,8 +38,10 @@ public class MyGLSurfaceView extends GLSurfaceView{
         // Set the Renderer for drawing on the GLSurfaceView
         setRenderer(mRenderer);
 
+
         scaleGestureDetector = new ScaleGestureDetector(context, new ScaleListener());
         gestureDetector = new GestureDetector(context, new GestureListener());
+
 
     }
 
@@ -48,6 +52,7 @@ public class MyGLSurfaceView extends GLSurfaceView{
 //        }
         scaleGestureDetector.onTouchEvent(e);
         gestureDetector.onTouchEvent(e);
+
 
 
 
@@ -66,8 +71,10 @@ public class MyGLSurfaceView extends GLSurfaceView{
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            float viewportOffsetX = distanceX * 2 * mRenderer.ratio / mRenderer.scaleFactor / (float) Math.sqrt(mRenderer.viewPortWidth);
-            float viewportOffsetY = -distanceY * 2 / mRenderer.scaleFactor / (float) Math.sqrt(mRenderer.viewportHeight);
+            float viewportOffsetX = distanceX * (mRenderer.back / mRenderer.WORKING_SCROLL) * 2
+                    * mRenderer.ratio / mRenderer.scaleFactor / (float) Math.sqrt(mRenderer.viewPortWidth);
+            float viewportOffsetY = -distanceY * (mRenderer.back / mRenderer.WORKING_SCROLL) * 2
+                    / mRenderer.scaleFactor / (float) Math.sqrt(mRenderer.viewportHeight);
 
             Log.d("scroll", "offsetx: " + viewportOffsetX + " offsety: " + viewportOffsetY);
 
@@ -78,6 +85,16 @@ public class MyGLSurfaceView extends GLSurfaceView{
 
             return true;
         }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            Log.d(TAG, "onDoubleTapEvent");
+            mRenderer.progressToNextView();
+            return true;
+        }
+
     }
+
+
 
 }
