@@ -89,9 +89,13 @@ public class MyGLSurfaceView extends GLSurfaceView {
         @Override
         public boolean onDoubleTap(MotionEvent e) {
             Log.d(TAG, "onDoubleTapEvent");
-            mRenderer.progressToNextView();
+//            mRenderer.progressToNextView();
+            mRenderer.prevRenderMode = mRenderer.render3d;
+            mRenderer.render3d = !mRenderer.render3d;
             return true;
         }
+
+
 
     }
 

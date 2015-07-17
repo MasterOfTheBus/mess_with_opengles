@@ -19,6 +19,8 @@ public class InstancedTexturedSquare {
     private FloatBuffer vertexBuffer;
     private ShortBuffer orderBuffer;
     private FloatBuffer texCoordBuffer;
+    private FloatBuffer vertex3dBuffer;
+    private FloatBuffer tex3dCoordBuffer;
     private final int mProgram;
 
     // VBO handles
@@ -28,6 +30,8 @@ public class InstancedTexturedSquare {
     private final int mColorVBO;
     //private final int mOrderVBO;
     private final int mTexCoordVBO;
+    private final int mVertex3dVBO;
+    private final int mTex3dCoordVBO;
 
     private final int mTextureDataHandle;
 
@@ -51,7 +55,7 @@ public class InstancedTexturedSquare {
                     "void main() {  \n" +
                             "  v_color = a_color;" +
                             "  v_texCoord = a_texCoord;" +
-                            "  vec3 vertex_pos = vec3(a_vertex.x * a_size.x, a_vertex.y * a_size.y, a_vertex.z) + a_position.xyz;" +
+                            "  vec3 vertex_pos = vec3(a_vertex.x * a_size.x, a_vertex.y * a_size.y, a_vertex.z * a_size.z) + a_position.xyz;" +
                             "  gl_Position = a_mvpMatrix * vec4(vertex_pos, 1.0f);" + // pass only the positions
                     "}";
 
@@ -83,6 +87,101 @@ public class InstancedTexturedSquare {
             1.0f, -1.0f, 1.0f,
             1.0f, 1.0f, 1.0f
 
+    };
+
+    static float cube3dCoords[] = {
+// Front face
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+
+            // Right face
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+
+            // Back face
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+
+            // Left face
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
+
+            // Top face
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+
+            // Bottom face
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f
+
+    };
+
+    static float texCubeCoords[] = {
+            0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+
+            0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+
+            0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+
+            0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+
+            0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+
+            0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f
     };
 
     static float texCoords[] = {
@@ -119,9 +218,22 @@ public class InstancedTexturedSquare {
         texCoordBuffer.put(texCoords);
         texCoordBuffer.position(0);
 
+        // the 3d vertices
+        ByteBuffer bb4 = ByteBuffer.allocateDirect(cube3dCoords.length * 4);
+        bb4.order(ByteOrder.nativeOrder());
+        vertex3dBuffer = bb4.asFloatBuffer();
+        vertex3dBuffer.put(cube3dCoords);
+        vertex3dBuffer.position(0);
+
+        ByteBuffer bb5 = ByteBuffer.allocateDirect(texCubeCoords.length * 4);
+        bb5.order(ByteOrder.nativeOrder());
+        tex3dCoordBuffer = bb5.asFloatBuffer();
+        tex3dCoordBuffer.put(texCubeCoords);
+        tex3dCoordBuffer.position(0);
+
         // VBOs
-        final int buffers[] = new int[5];
-        GLES30.glGenBuffers(5, buffers, 0);
+        final int buffers[] = new int[7];
+        GLES30.glGenBuffers(7, buffers, 0);
 
         // bind the vertex data - will never change, do a static draw
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[0]);
@@ -136,7 +248,7 @@ public class InstancedTexturedSquare {
 
         // bind the size data
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[2]);
-        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, numInstances * 2 * 4, null, GLES30.GL_DYNAMIC_DRAW);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, numInstances * 3 * 4, null, GLES30.GL_DYNAMIC_DRAW);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
         // bind the color data
@@ -156,6 +268,17 @@ public class InstancedTexturedSquare {
                 texCoordBuffer, GLES30.GL_STATIC_DRAW);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
+        // bind the 3d vertex data - will never change, do a static draw
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[5]);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, cube3dCoords.length * 4,
+                vertex3dBuffer, GLES30.GL_STATIC_DRAW);
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, buffers[6]);
+        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, texCubeCoords.length * 4,
+                tex3dCoordBuffer, GLES30.GL_STATIC_DRAW);
+        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+
         // save the handles to the VBOs
         mVertexVBO = buffers[0];
         mPosVBO = buffers[1];
@@ -163,6 +286,8 @@ public class InstancedTexturedSquare {
         mColorVBO = buffers[3];
         //mOrderVBO = buffers[4];
         mTexCoordVBO = buffers[4];
+        mVertex3dVBO = buffers[5];
+        mTex3dCoordVBO = buffers[6];
 
         // Run the shader code compiler for the GLSL spec
         int vertexShader = MyGLRenderer.loadShader(GLES30.GL_VERTEX_SHADER,
@@ -194,7 +319,7 @@ public class InstancedTexturedSquare {
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
     //@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    public void draw(float[] vpMatrix, float[] positions, float[] sizes, float[] colors) {
+    public void draw(float[] vpMatrix, float[] positions, float[] sizes, float[] colors, boolean render3d) {
         // Add program to OpenGL ES environment
         GLES30.glUseProgram(mProgram);
 
@@ -206,21 +331,39 @@ public class InstancedTexturedSquare {
         int texAttr = GLES30.glGetAttribLocation(mProgram, "a_texCoord");
 
         // load vertices
-        GLES30.glEnableVertexAttribArray(vertexAttr);
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertexVBO);
-        GLES30.glVertexAttribPointer(vertexAttr, COORDS_PER_VERTEX,
-                GLES30.GL_FLOAT, false,
-                vertexStride, 0);
-        GLES30.glVertexAttribDivisor(vertexAttr, 0);
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+        if (render3d) {
+            GLES30.glEnableVertexAttribArray(vertexAttr);
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertex3dVBO);
+            GLES30.glVertexAttribPointer(vertexAttr, COORDS_PER_VERTEX,
+                    GLES30.GL_FLOAT, false,
+                    vertexStride, 0);
+            GLES30.glVertexAttribDivisor(vertexAttr, 0);
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
-        GLES30.glEnableVertexAttribArray(texAttr);
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mTexCoordVBO);
-        GLES30.glVertexAttribPointer(texAttr, 2,
-                GLES30.GL_FLOAT, false,
-                2 * 4, 0);
-        GLES30.glVertexAttribDivisor(texAttr, 0);
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+            GLES30.glEnableVertexAttribArray(texAttr);
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mTex3dCoordVBO);
+            GLES30.glVertexAttribPointer(texAttr, 2,
+                    GLES30.GL_FLOAT, false,
+                    2 * 4, 0);
+            GLES30.glVertexAttribDivisor(texAttr, 0);
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+        } else {
+            GLES30.glEnableVertexAttribArray(vertexAttr);
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertexVBO);
+            GLES30.glVertexAttribPointer(vertexAttr, COORDS_PER_VERTEX,
+                    GLES30.GL_FLOAT, false,
+                    vertexStride, 0);
+            GLES30.glVertexAttribDivisor(vertexAttr, 0);
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+
+            GLES30.glEnableVertexAttribArray(texAttr);
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mTexCoordVBO);
+            GLES30.glVertexAttribPointer(texAttr, 2,
+                    GLES30.GL_FLOAT, false,
+                    2 * 4, 0);
+            GLES30.glVertexAttribDivisor(texAttr, 0);
+            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+        }
 
 
         ByteBuffer bb = ByteBuffer.allocateDirect(positions.length * 4);
@@ -251,8 +394,8 @@ public class InstancedTexturedSquare {
         GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, 0, sizes.length * 4, sb);
 
         GLES30.glEnableVertexAttribArray(sizeAttr);
-        GLES30.glVertexAttribPointer(sizeAttr, 2, GLES30.GL_FLOAT,
-                false, 2 * 4, 0);
+        GLES30.glVertexAttribPointer(sizeAttr, 3, GLES30.GL_FLOAT,
+                false, 3 * 4, 0);
         GLES30.glVertexAttribDivisor(sizeAttr, 1);
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
@@ -292,7 +435,11 @@ public class InstancedTexturedSquare {
 
 
 //        GLES30.glDrawArraysInstanced(GLES30.GL_TRIANGLES, 0, 6, numInstances);
-        GLES30.glDrawElementsInstanced(GLES30.GL_TRIANGLES, drawOrder.length, GLES30.GL_UNSIGNED_SHORT, orderBuffer, numInstances);
+        if (render3d) {
+            GLES30.glDrawArraysInstanced(GLES30.GL_TRIANGLES, 0, 36, numInstances);
+        } else {
+            GLES30.glDrawElementsInstanced(GLES30.GL_TRIANGLES, drawOrder.length, GLES30.GL_UNSIGNED_SHORT, orderBuffer, numInstances);
+        }
 
         GLES30.glDisableVertexAttribArray(mPosVBO);
         GLES30.glDisableVertexAttribArray(mVertexVBO);

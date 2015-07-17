@@ -177,8 +177,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     int offsetX = 0;
     int offsetY = 0;
     //int i = 0;
-    float back = -150.0f;
+    float back = -50.0f;
     final float WORKING_SCROLL = -50.0f;
+
+    boolean render3d = false;
+    boolean prevRenderMode = false;
 
     /*
         Called on each redraw of the view
@@ -187,8 +190,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
 //        Log.d("bleh", "draw frame");
         float[] scratch = new float[16];
-        float[] positions = new float[4 * iSquare.numInstances];
-        float[] sizes = new float[2 * iSquare.numInstances];
+        float[] positions = new float[3 * iSquare.numInstances];
+        float[] sizes = new float[3 * iSquare.numInstances];
         float[] colors = new float[iSquare.numInstances * 4 * 6];
 
         // Redraw background color
@@ -198,7 +201,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // Define the camera view
         // Set the camera position (View matrix)
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f); // the view matrix used for triangle
-        Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
+//        if (render3d) {
+            Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY-5.0f, eyeZ-5.0f, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
+//        } else {
+//            Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
+//        }
         Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
         calcNewDimensionsAfterZoom(50.0f);
 //        GLES30.glViewport(viewportX, viewportY, viewPortWidth, viewportHeight);
@@ -244,10 +251,10 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                 positions[instance * 3] = pos + i * 5;
                 positions[instance*3 + 1] = pos + j * 5;
                 positions[instance*3 + 2] = 0.0f;//-200;
-                positions[instance * 3 + 3] = 4.0f;
 
-                sizes[instance * 2] = 2.0f;
-                sizes[instance * 2 + 1] = 2.0f;
+                sizes[instance * 3] = 2.0f;
+                sizes[instance * 3 + 1] = 2.0f;
+                sizes[instance * 3 + 2] = 2.0f;
 
                 for (int k = 0; k < 6; k++) {
                     colors[index] = 1.0f;
@@ -276,7 +283,14 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // instanced rendering
         //iCube.draw(mMVPMatrix, positions);
         //iSquare.draw(mMVPMatrix, positions, sizes, colors);
-        itSquare.draw(mMVPMatrix, positions, sizes, colors);
+
+        // try recompiling
+//        if (prevRenderMode != render3d)
+//            itSquare = new InstancedTexturedSquare(surfaceView);
+
+//        render3d = true;
+
+        itSquare.draw(mMVPMatrix, positions, sizes, colors, render3d);
 
 //        i++;
 //        if (i > 10) {
