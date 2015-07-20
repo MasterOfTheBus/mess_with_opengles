@@ -20,6 +20,11 @@ public class Square {
                     "attribute vec4 vPosition;" + // the cube vertex coordinates
                     "attribute vec2 a_TexCoordinate;" + // texture coordinate data
                     "varying vec2 vTexCoordinate;" + // pass to fragment shader
+
+                    "uniform float u_renderMode;" + // pass a parameter to conditional test input to glsl
+//                    "varying float v_renderMode;" + // pass the parameter to the fragment shader
+                    // TODO: test varying vs uniform only
+
                     "void main() {" +
                     "  gl_Position = uMVPMatrix * vPosition;" +
                     "  vTexCoordinate = a_TexCoordinate;" +
@@ -33,10 +38,19 @@ public class Square {
                     "uniform vec4 vColor;" + // input color
                     "uniform sampler2D uTexture;" + // input texture
                     "varying vec2 vTexCoordinate;" + // interpolated texture coordinate per fragment?
+
+                    "uniform float u_renderMode;" +
+//                    "varying float v_renderMode;" +
+
                     "void main() {" +
                     // texture2D to read in value of the texture at the current coordinate
                     // multiply by color (and lighting) for final output
-                    "  gl_FragColor = (vColor * texture2D(uTexture, vTexCoordinate));" +
+
+                    "  if (u_renderMode == 1.0f) {" +
+                    "    gl_FragColor = (vColor * texture2D(uTexture, vTexCoordinate));" +
+                    "  } else {" +
+                    "    gl_FragColor = (vec4(1.0f, 0.0f, 0.0f, 1.0f) * texture2D(uTexture, vTexCoordinate));" +
+                    "  }" +
                     "}";
 
     private FloatBuffer vertexBuffer;
@@ -143,7 +157,7 @@ public class Square {
     private final int vertexCount = drawOrder.length; //squareCoords.length / COORDS_PER_VERTEX;
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
-    public void draw(float[] mvpMatrix) {
+    public void draw(float[] mvpMatrix, float renderMode) {
         // get handle to fragment shader's uTexture member
         mTextureUniformHandle = GLES20.glGetUniformLocation(mProgram, "uTexture");
 
@@ -190,6 +204,10 @@ public class Square {
 
         // Pass the projection and view transformation to the shader
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+
+
+        int renderModeHandle = GLES20.glGetUniformLocation(mProgram, "u_renderMode");
+        GLES20.glUniform1f(renderModeHandle, renderMode);
 
         // Draw the square by drawing two triangles
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length,

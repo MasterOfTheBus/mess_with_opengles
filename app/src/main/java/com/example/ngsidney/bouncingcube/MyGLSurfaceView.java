@@ -30,7 +30,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
 //        setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
 
         setEGLContextClientVersion(3);
-        //setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
+//        setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
 
 
         mRenderer = new MyGLRenderer(this);
@@ -75,8 +75,6 @@ public class MyGLSurfaceView extends GLSurfaceView {
                     * mRenderer.ratio / mRenderer.scaleFactor / (float) Math.sqrt(mRenderer.viewPortWidth);
             float viewportOffsetY = -distanceY * (mRenderer.back / mRenderer.WORKING_SCROLL) * 2
                     / mRenderer.scaleFactor / (float) Math.sqrt(mRenderer.viewportHeight);
-
-            Log.d("scroll", "offsetx: " + viewportOffsetX + " offsety: " + viewportOffsetY);
 
             mRenderer.eyeX += viewportOffsetX;
             mRenderer.eyeY += viewportOffsetY;

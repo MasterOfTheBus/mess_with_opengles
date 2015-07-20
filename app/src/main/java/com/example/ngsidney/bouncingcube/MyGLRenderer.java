@@ -35,6 +35,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private InstancedCube iCube;
     private InstancedSquare iSquare;
     private InstancedTexturedSquare itSquare;
+    private LitInstancedTexturedSquare litSquare;
 
     int AXIS_X_MIN;
     int AXIS_Y_MIN;
@@ -103,6 +104,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //iCube = new InstancedCube();
         iSquare = new InstancedSquare();
         itSquare = new InstancedTexturedSquare(surfaceView);
+
+        litSquare = new LitInstancedTexturedSquare(surfaceView);
 
     }
 
@@ -201,22 +204,13 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // Define the camera view
         // Set the camera position (View matrix)
         //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f); // the view matrix used for triangle
-//        if (render3d) {
+        if (render3d) {
             Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY-5.0f, eyeZ-5.0f, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
-//        } else {
-//            Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
-//        }
+        } else {
+            Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
+        }
         Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
-        calcNewDimensionsAfterZoom(50.0f);
-//        GLES30.glViewport(viewportX, viewportY, viewPortWidth, viewportHeight);
-
-//        if (back > -50.0f /*125*/) {
-//            back -= 0.5f;
-//        }
-
-        // zoom by adjusting the frustum focal lens; ie change the FOV (how cameras actually do it)
-//        Matrix.frustumM(mProjectionMatrix, 0, (-ratio)/scaleFactor, (ratio)/scaleFactor,
-//                (-1.0f)/scaleFactor, (1.0f)/scaleFactor, near, far);
+//        calcNewDimensionsAfterZoom(50.0f);
 
 
         if(scaleFactor<=20 && scaleFactor>=1)
@@ -231,14 +225,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         {
             scaleFactor=1;
         }
-
-
-
-        Log.d("blah", "scaleFactor: " + scaleFactor);
-
-//        zoom += 0.01f;
-//        if (zoom > 2.5f)
-//            zoom = 1.0f;
 
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
@@ -278,7 +264,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 //            myTriangle.drawDiff(mMVPMatrix, posi);
 //        }
 
-//        mySquare.draw(mMVPMatrix);
+//        mySquare.draw(mMVPMatrix, (render3d) ? 1.0f : 0.0f);
 
         // instanced rendering
         //iCube.draw(mMVPMatrix, positions);
@@ -290,7 +276,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
 //        render3d = true;
 
-        itSquare.draw(mMVPMatrix, positions, sizes, colors, render3d);
+        Matrix.setIdentityM(scratch, 0);
+
+        litSquare.draw(mMVPMatrix, scratch, positions, sizes, colors, render3d);
+
+//        itSquare.draw(mMVPMatrix, positions, sizes, colors, render3d);
 
 //        i++;
 //        if (i > 10) {
