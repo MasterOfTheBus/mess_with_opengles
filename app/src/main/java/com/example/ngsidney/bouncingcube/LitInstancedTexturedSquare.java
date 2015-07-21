@@ -56,7 +56,7 @@ public class LitInstancedTexturedSquare {
 
                     "uniform mat4 a_mvpMatrix;" +
                             "uniform mat4 u_mvMatrix;" +
-//                            "uniform float u_renderMode;" +
+                            "uniform float u_renderMode;" +
 
                             "varying vec4 v_color;" +
                             "varying vec2 v_texCoord;" +
@@ -94,17 +94,28 @@ public class LitInstancedTexturedSquare {
                     "uniform float u_renderMode;" +
 
                     "void main() {" +
-//                    "  if (u_renderMode == 1.0f) {" +
-                    "    float distance = length(u_lightPos - v_position);" +
-                    "    vec3 lightVector = normalize(u_lightPos - v_position);" +
-                    "    float diffuse = max(dot(v_normal, lightVector), 0.1f);" +
+//                    "    float distance = length(u_lightPos - v_position);" +
+//                    "    vec3 lightVector = normalize(u_lightPos - v_position);" +
+//                    "    float diffuse = max(dot(v_normal, lightVector), 0.1f);" +
 //                    "  diffuse = diffuse * (10.0f / (1.0f + (0.25f * distance * distance)));" +
-                    "    diffuse = diffuse * (10.0f / (1.0f + (0.25f)));" +
+                    "  vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);" +
+                    "  vec3 lightDirection = vec3(0.0f, 0.0f, 1.0f);" +
+                    "  float ambientLightIntensity = 0.2f;" +
+
+                    "  float diffuse = max(dot(v_normal, lightDirection), 0.0f) + ambientLightIntensity;" +
+
 
 
 //                    "  if (diffuse == 0.0) {" + // some debugging
 //                    "    gl_FragColor = (vec4(1.0f, 1.0f, 1.0f, 1.0f) * texture2D(u_texture, v_texCoord));" +
-                    "    gl_FragColor = (v_color * diffuse * texture2D(u_texture, v_texCoord));" +
+                    "  if (u_renderMode == 0.0f) {" +
+                    "    diffuse = 1.0f;" +
+                    "  }" +
+
+//                    "    gl_FragColor = (color * diffuse);" + // * texture2D(u_texture, v_texCoord));" +
+
+                    "    gl_FragColor = vec4(v_color.xyz * diffuse * lightColor, v_color.w);" +
+
 
 //                    "  } else {" +
 //                    "    gl_FragColor = (v_color * texture2D(u_texture, v_texCoord));" +
@@ -579,9 +590,9 @@ public class LitInstancedTexturedSquare {
 
 //        int mRenderHandle = GLES30.glGetUniformLocation(mProgram, "u_renderMode");
 //        GLES30.glUniform1ui(mRenderHandle, (render3d) ? 1 : 0);
-//        int mRenderHandle = GLES30.glGetUniformLocation(mProgram, "u_renderMode");
+        int mRenderHandle = GLES30.glGetUniformLocation(mProgram, "u_renderMode");
 //        Log.d("asdf", "render mode: " + render3d + ((render3d) ? 1 : 0));
-//        GLES30.glUniform1f(mRenderHandle, ((render3d) ? 1.0f : 0.0f));
+        GLES30.glUniform1f(mRenderHandle, ((render3d) ? 1.0f : 0.0f));
 
 
 //        GLES30.glDrawArraysInstanced(GLES30.GL_TRIANGLES, 0, 6, numInstances);
