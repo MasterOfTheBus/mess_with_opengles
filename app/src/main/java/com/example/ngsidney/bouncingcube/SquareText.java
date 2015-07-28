@@ -51,10 +51,10 @@ public class SquareText {
     // number of coordinates per vertex in this array
     static final int COORDS_PER_VERTEX = 3;
     static float squareCoords[] = {
-            -0.5f,  0.5f, 0.0f,   // top left
-            -0.5f, -0.5f, 0.0f,   // bottom left
-            0.5f, -0.5f, 0.0f,   // bottom right
-            0.5f,  0.5f, 0.0f }; // top right
+            -1.0f,  1.0f, 5.0f,   // top left
+            -1.0f, -1.0f, 5.0f,   // bottom left
+            1.0f, -1.0f, 5.0f,   // bottom right
+            1.0f,  1.0f, 5.0f }; // top right
 
     // Set color with red, green, blue and alpha (opacity) values
     float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
@@ -75,8 +75,6 @@ public class SquareText {
             1.0f, 1.0f,
             1.0f, 0.0f
     };
-
-    MyGLSurfaceView surfaceView;
 
     // members to hold the stuff to pass to the shader and a ref to the texture
     /** Store our model data in a float buffer. */
@@ -259,7 +257,7 @@ public class SquareText {
         // text color - #3D3D3D
         paint.setColor(Color.rgb(61, 61, 61));
         // text size in pixels
-        paint.setTextSize((int) (14 /* * scale */));
+        paint.setTextSize((int) (18 /* * scale */));
         // text shadow
         paint.setShadowLayer(1f, 0f, 1f, Color.WHITE);
 
