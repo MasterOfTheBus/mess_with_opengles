@@ -36,7 +36,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private InstancedSquare iSquare;
     private InstancedTexturedSquare itSquare;
     private LitInstancedTexturedSquare litSquare;
-    private TextRenderer textRenderer;
     private SquareText squareText;
     private LitInstancedTextureMappedSquare mappedSquare;
 
@@ -92,8 +91,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //Hide the hidden surfaces using these APIs
         GLES30.glEnable(GLES30.GL_DEPTH_TEST);
         GLES30.glDepthFunc(GLES30.GL_LESS);
-
-
         //GLES20.glDepthMask(true);
 
 //        // Init a triangle and a square
@@ -109,15 +106,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //iCube = new InstancedCube();
         iSquare = new InstancedSquare();
 //        itSquare = new InstancedTexturedSquare(surfaceView);
-//
+
         litSquare = new LitInstancedTexturedSquare(surfaceView);
 
-//        textRenderer = new TextRenderer();
-
-        squareText = new SquareText();
-
         mappedSquare = new LitInstancedTextureMappedSquare(surfaceView);
-
+        squareText = new SquareText();
     }
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -198,8 +191,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     boolean prevRenderMode = false;
 
     long prevTime = 0;
-    long currTime = 0;
-
     int fps = 0;
     int dispFps = 0;
 
@@ -208,13 +199,13 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     */
     @Override
     public void onDrawFrame(GL10 gl) {
-        currTime = System.currentTimeMillis();
+        long currTime = System.currentTimeMillis();
 
 //        Log.d("bleh", "draw frame");
         float[] scratch = new float[16];
-            float[] positions = new float[3 * iSquare.numInstances];
-            float[] sizes = new float[3 * iSquare.numInstances];
-            float[] colors = new float[iSquare.numInstances * 4 * 6];
+        float[] positions = new float[3 * iSquare.numInstances];
+        float[] sizes = new float[3 * iSquare.numInstances];
+        float[] colors = new float[iSquare.numInstances * 4 * 6];
 
         // Redraw background color
         GLES30.glClearDepthf(1.0f);
@@ -228,8 +219,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         } else {
             Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
         }
-//        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
-        Matrix.translateM(mViewMatrix, 0, 0.0f, 0.0f, back);
+        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
 //        calcNewDimensionsAfterZoom(50.0f);
 
 
@@ -248,37 +238,34 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
-//        mySquare.draw(mMVPMatrix);
+        float pos = 0.0f;//-250.0f; // instanced -250
+        int instance = 0;
+        int index = 0;
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 100; j++) {
+                //for (int k = 0; k < )
+                positions[instance * 3] = pos + i * 5;
+                positions[instance*3 + 1] = pos + j * 5;
+                positions[instance*3 + 2] = 0.0f;//-200;
 
+                sizes[instance * 3] = 2.0f;
+                sizes[instance * 3 + 1] = 2.0f;
+                sizes[instance * 3 + 2] = 2.0f;
 
-            float pos = 0.0f;//-250.0f; // instanced -250
-            int instance = 0;
-            int index = 0;
-            for (int i = 0; i < 100; i++) {
-                for (int j = 0; j < 100; j++) {
-                    //for (int k = 0; k < )
-                    positions[instance * 3] = pos + i * 5;
-                    positions[instance * 3 + 1] = pos + j * 5;
-                    positions[instance * 3 + 2] = 0.0f;//-200;
-
-                    sizes[instance * 3] = 2.0f;
-                    sizes[instance * 3 + 1] = 2.0f;
-                    sizes[instance * 3 + 2] = 2.0f;
-
-                    for (int k = 0; k < 6; k++) {
-                        colors[index] = 1.0f;
-                        index++;
-                        colors[index] = 0.0f;
-                        index++;
-                        colors[index] = 0.0f;
-                        index++;
-                        colors[index] = 1.0f;
-                        index++;
-                    }
-
-                    instance++;
+                for (int k = 0; k < 6; k++) {
+                    colors[index] = 1.0f;
+                    index++;
+                    colors[index] = 0.0f;
+                    index++;
+                    colors[index] = 0.0f;
+                    index++;
+                    colors[index] = 1.0f;
+                    index++;
                 }
+
+                instance++;
             }
+        }
 
 //        myTriangle.draw(mMVPMatrix);
 
@@ -299,7 +286,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
 //        render3d = true;
 
+        Matrix.setIdentityM(scratch, 0);
+
 //        litSquare.draw(mMVPMatrix, scratch, positions, sizes, colors, render3d);
+
+        mappedSquare.draw(mMVPMatrix, scratch, positions, sizes, colors, render3d);
 
 //        itSquare.draw(mMVPMatrix, positions, sizes, colors, render3d);
 
@@ -311,15 +302,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             dispFps = fps;
             fps = 0;
         }
-//        Matrix.setIdentityM(scratch, 0);
-//        Matrix.translateM(mTranslationMatrix, 0, eyeX, eyeY, 0);
-//        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mTranslationMatrix, 0);
+//        squareText.print(mMVPMatrix, "FPS: " + dispFps);
 
-        squareText.print(mMVPMatrix, "FPS: " + dispFps);
 
-//        squareText.print(mMVPMatrix, "FPS: " + 1000 / (currTime - prevTime));
-//        Log.d("blah", "currTime: " + currTime + " prevTime: " + prevTime + " calc: " + 1000 / (currTime - prevTime));
-//        prevTime = currTime;
 
 //        i++;
 //        if (i > 10) {

@@ -54,7 +54,7 @@ public class LitInstancedTextureMappedSquare {
                     "attribute vec4 a_position;" +
                             "attribute vec4 a_size;" +
                             "attribute vec4 a_color;" +
-                            "attribute vec2 a_texCoord;" +
+                            "attribute vec3 a_texCoord;" +
                             "attribute vec3 a_normal;" +
 
                     "uniform mat4 a_mvpMatrix;" +
@@ -62,7 +62,7 @@ public class LitInstancedTextureMappedSquare {
                             "uniform float u_renderMode;" +
 
                             "varying vec4 v_color;" +
-                            "varying vec2 v_texCoord;" +
+                            "varying vec3 v_texCoord;" +
                             "varying vec3 v_normal;" +
                             "varying vec3 v_position;" +
 
@@ -88,7 +88,7 @@ public class LitInstancedTextureMappedSquare {
     private final String fragmentShaderCode =
             "precision mediump float;" +
                     "varying vec4 v_color;" +
-                    "varying vec2 v_texCoord;" +
+                    "varying vec3 v_texCoord;" +
                     "varying vec3 v_normal;" +
                     "varying vec3 v_position;" +
 
@@ -110,8 +110,11 @@ public class LitInstancedTextureMappedSquare {
 
 //                    "    gl_FragColor = (color * diffuse);" + // * texture2D(u_texture, v_texCoord));" +
 
-//                    "    gl_FragColor = vec4(v_color.xyz * diffuse * lightColor * texture(u_texture, v_texCoord), v_color.w);" +
+                    "  if (u_renderMode == 1.0f) {" +
+                    "    gl_FragColor = vec4(v_color.xyz * diffuse * lightColor, v_color.w) * textureCube(u_texture, v_texCoord);" +
+                    "  } else {" +
                     "    gl_FragColor = vec4(v_color.xyz * diffuse * lightColor, v_color.w);" +
+                    "  }" +
                     "}";
 
     // number of coordinates per vertex in this array
@@ -193,47 +196,53 @@ public class LitInstancedTextureMappedSquare {
     };
 
     static float texCubeCoords[] = {
-            0.0f, 0.0f,// 0.0f, // TODO: tex coords for 3d;
-            0.0f, 1.0f,// 0.0f, // front
-            1.0f, 0.0f,// 0.0f,
-            0.0f, 1.0f,// 0.0f,
-            1.0f, 1.0f,// 0.0f,
-            1.0f, 0.0f,// 0.0f,
+            // Front face
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
 
-            0.0f, 0.0f, // right
-            0.0f, 1.0f,
-            1.0f, 0.0f,
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
+            // Right face
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
 
-            0.0f, 0.0f, // back
-            0.0f, 1.0f,
-            1.0f, 0.0f,
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
+            // Back face
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
 
-            0.0f, 0.0f, // left
-            0.0f, 1.0f,
-            1.0f, 0.0f,
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
+            // Left face
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
 
-            0.0f, 0.0f, // top
-            0.0f, 1.0f,
-            1.0f, 0.0f,
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
+            // Top face
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
 
-            0.0f, 0.0f, // bottom
-            0.0f, 1.0f,
-            1.0f, 0.0f,
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f
+            // Bottom face
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, -1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, 1.0f, 1.0f
     };
 
     static float normal3d[] = {
@@ -425,7 +434,7 @@ public class LitInstancedTextureMappedSquare {
         // creates OpenGL ES program executables
         GLES30.glLinkProgram(mProgram);
 
-        int resources[] = {R.drawable.scaly, R.drawable.blank, R.drawable.blank, R.drawable.blank,
+        int resources[] = {R.drawable.scaly, R.drawable.scaly, R.drawable.scaly, R.drawable.scaly,
                             R.drawable.scaly, R.drawable.scaly};
         mTextureDataHandle = loadCubeMap(resources);
 
