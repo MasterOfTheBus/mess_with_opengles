@@ -1,6 +1,7 @@
 package com.example.ngsidney.bouncingcube;
 
 import android.content.Context;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
@@ -25,12 +26,16 @@ public class MyGLSurfaceView extends GLSurfaceView {
     public MyGLSurfaceView(Context context) {
         super(context);
 
+        setZOrderOnTop(true);
+
+        getHolder().setFormat(PixelFormat.TRANSPARENT);
+
         // Create an OpenGL ES 2.0 context
 //        setEGLContextClientVersion(2);
 //        setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
 
         setEGLContextClientVersion(3);
-        setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
+        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 
 
         mRenderer = new MyGLRenderer(this);

@@ -219,7 +219,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         } else {
             Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ); // view matrix for cube
         }
-        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
+//        Matrix.translateM(mViewMatrix, 0, -100.0f, -100.0f, back);
+        Matrix.translateM(mViewMatrix, 0, 0.0f, 0.0f, back/2);
+
 //        calcNewDimensionsAfterZoom(50.0f);
 
 
@@ -290,7 +292,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
 //        litSquare.draw(mMVPMatrix, scratch, positions, sizes, colors, render3d);
 
-        mappedSquare.draw(mMVPMatrix, scratch, positions, sizes, colors, render3d);
+//        mappedSquare.draw(mMVPMatrix, scratch, positions, sizes, colors, render3d);
 
 //        itSquare.draw(mMVPMatrix, positions, sizes, colors, render3d);
 
@@ -302,7 +304,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             dispFps = fps;
             fps = 0;
         }
-//        squareText.print(mMVPMatrix, "FPS: " + dispFps);
+        squareText.print(mMVPMatrix, "FPS: " + dispFps);
 
 
 

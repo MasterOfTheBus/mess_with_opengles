@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
@@ -266,6 +267,9 @@ public class SquareText {
         paint.getTextBounds(text, 0, text.length(), bounds);
         int x = (bitmap.getWidth() - bounds.width())/2;
         int y = (bitmap.getHeight() + bounds.height())/2;
+
+//        canvas.drawARGB(0, 0, 0, 0);
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
         canvas.drawText(text, x, y, paint);
 
