@@ -2,7 +2,10 @@ package com.example.ngsidney.bouncingcube;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.opengl.GLES20;
 import android.opengl.GLES30;
+import android.opengl.GLUtils;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -95,7 +98,6 @@ public class ArrayTexturedSquare {
                     "in vec3 v_position;" +
                     "in float v_face;" +
 
-                    "uniform vec3 u_lightPos;" +
                     "uniform sampler2DArray u_texture;" +
                     "uniform float u_renderMode;" +
 
@@ -449,17 +451,39 @@ public class ArrayTexturedSquare {
     int height = 1;
     public int generateTextureArray(int res[]) {
         int texArray[] = new int[1];
+        int params[] = new int[2];
+
+        GLES30.glGetTexParameteriv(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_IMMUTABLE_FORMAT, params, 0);
+        if (params[0] == GLES30.GL_TRUE)
+            Log.d("a", "immutable is gl true");
+        else
+            Log.d("a", "immutable is gl false");
+
+        GLES30.glGetIntegerv(GLES30.GL_TEXTURE_BINDING_2D_ARRAY, params, 1);
+        Log.d("a", "texture binding 2d array: " + params[1]);
 
         GLES30.glGenTextures(1, texArray, 0);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D_ARRAY, texArray[0]);
 
-        GLES30.glTexStorage3D(GLES30.GL_TEXTURE_2D_ARRAY, 1, GLES30.GL_RGBA, width, height, res.length);
-
         if (texArray[0] != 0) {
+
+            GLES30.glGetIntegerv(GLES30.GL_TEXTURE_BINDING_2D_ARRAY, params, 1);
+            Log.d("a", "texture binding 2d array after bind method: " + params[1]);
+
+            GLES30.glGetTexParameteriv(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_IMMUTABLE_FORMAT, params, 0);
+            if (params[0] == GLES30.GL_TRUE)
+                Log.d("a", "immutable after binding is gl true");
+            else
+                Log.d("a", "immutable after binding is gl false");
+
+            GLES30.glTexStorage3D(GLES30.GL_TEXTURE_2D_ARRAY, 1, GLES30.GL_RGBA8, width, height, res.length);
+//            GLES30.glTexImage3D(GLES30.GL_TEXTURE_2D_ARRAY, 1, GLES30.GL_RGBA, 1, 1, res.length, 0, GLES30.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, 0);
+
+            int error = GLES30.glGetError();
+            Log.d("a", "error: " + error);
+
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inScaled = false;   // No pre-scaling
-
-//            Bitmap bitmap;// = null;
 
             for (int i = 0; i < res.length; i++) {
                 Bitmap bitmap = BitmapFactory.decodeResource(surfaceView.getResources(), res[i], options);
@@ -627,10 +651,6 @@ public class ArrayTexturedSquare {
         mMVMatrixHandle = GLES30.glGetUniformLocation(mProgram, "u_mvMatrix");
         // Pass the projection and view transformation to the shader
         GLES30.glUniformMatrix4fv(mMVMatrixHandle, 1, false, mvMatrix, 0);
-
-        // set the light position
-        mLightPosHandle = GLES30.glGetUniformLocation(mProgram, "u_lightPos");
-        GLES30.glUniform3f(mLightPosHandle, 100.0f, 10.0f, 10.0f);
 
 //        int mRenderHandle = GLES30.glGetUniformLocation(mProgram, "u_renderMode");
 //        GLES30.glUniform1ui(mRenderHandle, (render3d) ? 1 : 0);
