@@ -76,10 +76,8 @@ public class ArrayTexturedSquare {
 
                             "  vec3 vertex_pos = vec3(a_vertex.x * a_size.x, a_vertex.y * a_size.y, a_vertex.z * a_size.z) + a_position.xyz;" +
 
-//                            "  if (u_renderMode == 1.0f) {" +
                             "    v_position = vec3(u_mvMatrix * vec4(vertex_pos, 1.0f));" +
                             "    v_normal = vec3(u_mvMatrix * vec4(a_normal, 0.0f));" +
-//                            "  }" +
 
                             "  gl_Position = a_mvpMatrix * vec4(vertex_pos, 1.0f);" + // pass only the positions
                     "}";
@@ -114,11 +112,11 @@ public class ArrayTexturedSquare {
                     "    diffuse = 1.0f;" +
                     "  }" +
 
-                    "  vec3 texCoord = vec3(v_texCoord, 2);" +
+                    "  vec3 texCoord = vec3(v_texCoord, v_face);" +
                     "  int face = int(v_face);" +
 //                    "  gl_FragColor = vec4(v_color.xyz * diffuse * lightColor, v_color.w) * texture2D(u_texture[3], v_texCoord);" +
-                    "  color = vec4(diffuse * lightColor, v_color.w) * texture(u_texture, texCoord);" +
-
+//                    "  color = vec4(diffuse * lightColor, v_color.w) * texture(u_texture, texCoord);" +
+                    "  color = texture(u_texture, texCoord);" +
                     "}";
 
     // number of coordinates per vertex in this array
@@ -131,10 +129,10 @@ public class ArrayTexturedSquare {
 //            -1.0f, -1.0f, 1.0f,
 //            1.0f, -1.0f, 1.0f,
 //            1.0f, 1.0f, 1.0f
-            -1.0f, 1.0f, 1.0f,
-            -1.0f, -1.0f, 1.0f,
-            1.0f, -1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f
+            -1.0f, 1.0f, 1.0f, 0,
+            -1.0f, -1.0f, 1.0f, 0,
+            1.0f, -1.0f, 1.0f, 0,
+            1.0f, 1.0f, 1.0f, 0
 
     };
 
@@ -447,43 +445,50 @@ public class ArrayTexturedSquare {
     }
 
     int numTex = 6;
-    int width = 1;
-    int height = 1;
+    int width = 256;
+    int height = 256;
     public int generateTextureArray(int res[]) {
+        if (res.length == 0) return -1;
         int texArray[] = new int[1];
         int params[] = new int[2];
 
-        GLES30.glGetTexParameteriv(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_IMMUTABLE_FORMAT, params, 0);
-        if (params[0] == GLES30.GL_TRUE)
-            Log.d("a", "immutable is gl true");
-        else
-            Log.d("a", "immutable is gl false");
-
-        GLES30.glGetIntegerv(GLES30.GL_TEXTURE_BINDING_2D_ARRAY, params, 1);
-        Log.d("a", "texture binding 2d array: " + params[1]);
+//        GLES30.glGetTexParameteriv(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_IMMUTABLE_FORMAT, params, 0);
+//        if (params[0] == GLES30.GL_TRUE)
+//            Log.d("a", "immutable is gl true");
+//        else
+//            Log.d("a", "immutable is gl false");
+//
+//        GLES30.glGetIntegerv(GLES30.GL_TEXTURE_BINDING_2D_ARRAY, params, 1);
+//        Log.d("a", "texture binding 2d array: " + params[1]);
 
         GLES30.glGenTextures(1, texArray, 0);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D_ARRAY, texArray[0]);
 
         if (texArray[0] != 0) {
 
-            GLES30.glGetIntegerv(GLES30.GL_TEXTURE_BINDING_2D_ARRAY, params, 1);
-            Log.d("a", "texture binding 2d array after bind method: " + params[1]);
-
-            GLES30.glGetTexParameteriv(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_IMMUTABLE_FORMAT, params, 0);
-            if (params[0] == GLES30.GL_TRUE)
-                Log.d("a", "immutable after binding is gl true");
-            else
-                Log.d("a", "immutable after binding is gl false");
-
-            GLES30.glTexStorage3D(GLES30.GL_TEXTURE_2D_ARRAY, 1, GLES30.GL_RGBA8, width, height, res.length);
-//            GLES30.glTexImage3D(GLES30.GL_TEXTURE_2D_ARRAY, 1, GLES30.GL_RGBA, 1, 1, res.length, 0, GLES30.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, 0);
-
-            int error = GLES30.glGetError();
-            Log.d("a", "error: " + error);
+//            GLES30.glGetIntegerv(GLES30.GL_TEXTURE_BINDING_2D_ARRAY, params, 1);
+//            Log.d("a", "texture binding 2d array after bind method: " + params[1]);
+//
+//            GLES30.glGetTexParameteriv(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_IMMUTABLE_FORMAT, params, 0);
+//            if (params[0] == GLES30.GL_TRUE)
+//                Log.d("a", "immutable after binding is gl true");
+//            else
+//                Log.d("a", "immutable after binding is gl false");
 
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inScaled = false;   // No pre-scaling
+
+            // assume uniform texture sizes?
+            Bitmap sampleBitmap = BitmapFactory.decodeResource(surfaceView.getResources(), res[0], options);
+            width = sampleBitmap.getWidth();
+            height = sampleBitmap.getHeight();
+
+
+            GLES30.glTexStorage3D(GLES30.GL_TEXTURE_2D_ARRAY, 1, GLES30.GL_RGBA8, width, height, res.length);
+//            GLES30.glTexImage3D(GLES30.GL_TEXTURE_2D_ARRAY, 1, GLES30.GL_RGBA8, 1, 1, res.length, 0, GLES30.GL_RGBA8, GLES20.GL_UNSIGNED_BYTE, 0);
+
+//            int error = GLES30.glGetError();
+//            Log.d("a", "error: " + error);
 
             for (int i = 0; i < res.length; i++) {
                 Bitmap bitmap = BitmapFactory.decodeResource(surfaceView.getResources(), res[i], options);
@@ -491,14 +496,15 @@ public class ArrayTexturedSquare {
                 bitmap.copyPixelsToBuffer(texBuffer);
                 texBuffer.position(0);
 
-                GLES30.glTexSubImage3D(GLES30.GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1,
-                        GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, texBuffer);
+
+                GLES30.glTexSubImage3D(GLES30.GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, bitmap.getWidth(),
+                        bitmap.getHeight(), 1, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, texBuffer);
 
                 bitmap.recycle();
             }
 
-            GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR);
-            GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_LINEAR);
+            GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST);
+            GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_NEAREST);
             GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_WRAP_S, GLES30.GL_CLAMP_TO_EDGE);
             GLES30.glTexParameterf(GLES30.GL_TEXTURE_2D_ARRAY, GLES30.GL_TEXTURE_WRAP_T, GLES30.GL_CLAMP_TO_EDGE);
         } else {
@@ -557,9 +563,9 @@ public class ArrayTexturedSquare {
         } else {
             GLES30.glEnableVertexAttribArray(vertexAttr);
             GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertexVBO);
-            GLES30.glVertexAttribPointer(vertexAttr, COORDS_PER_VERTEX,
+            GLES30.glVertexAttribPointer(vertexAttr, 4,
                     GLES30.GL_FLOAT, false,
-                    vertexStride, 0);
+                    4 * 4, 0);
             GLES30.glVertexAttribDivisor(vertexAttr, 0);
             GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
