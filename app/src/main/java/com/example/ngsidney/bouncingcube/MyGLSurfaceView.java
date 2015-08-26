@@ -5,6 +5,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -22,9 +23,39 @@ public class MyGLSurfaceView extends GLSurfaceView {
     private GestureDetector gestureDetector;
     private static String TAG = MyGLSurfaceView.class.getSimpleName();
 
-
     public MyGLSurfaceView(Context context) {
         super(context);
+
+        Log.d("test", "surface view constructor");
+
+        setZOrderOnTop(true);
+
+        getHolder().setFormat(PixelFormat.TRANSPARENT);
+
+        // Create an OpenGL ES 2.0 context
+//        setEGLContextClientVersion(2);
+//        setEGLConfigChooser( 8, 8, 8, 8, 16, 0 );
+
+        setEGLContextClientVersion(3);
+        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+
+
+        mRenderer = new MyGLRenderer(this);
+
+        // Set the Renderer for drawing on the GLSurfaceView
+        setRenderer(mRenderer);
+
+
+        scaleGestureDetector = new ScaleGestureDetector(context, new ScaleListener());
+        gestureDetector = new GestureDetector(context, new GestureListener());
+
+
+    }
+
+    public MyGLSurfaceView(Context context, AttributeSet attr) {
+        super(context, attr);
+
+        Log.d("test", "surface view constructor");
 
         setZOrderOnTop(true);
 
